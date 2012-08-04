@@ -1,0 +1,18 @@
+import numpy as np
+class product_predictor(object):
+    def __init__(self, x):
+        self.x = x
+
+    def apply_one(self, v):
+        return np.dot(v, self.x)
+
+class random_project(object):
+    def __init__(self, nr_dims=12):
+        self.nr_dims = nr_dims
+    def train(self, features, labels):
+        n,m = features.shape
+        V = np.random.rand(m, self.nr_dims)
+        features = np.dot(features, V)
+        features /= features.mean()
+        x,residues,rank,s = np.linalg.lstsq(features, labels)
+        return product_predictor(np.dot(V,x))
