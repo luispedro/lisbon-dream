@@ -1,6 +1,16 @@
 import numpy as np
+
+def open_data(fname, subchallenge):
+    from os import path
+    return open(path.join(
+                path.dirname(path.abspath(__file__)),
+                '..',
+                'data',
+                'DrugSensitivity%s' % subchallenge,
+                fname))
+
 def read_gene_expression():
-    input = open('DREAM7_DrugSensitivity1_GeneExpression.txt')
+    input = open_data('DREAM7_DrugSensitivity1_GeneExpression.txt', 1)
     data = []
     celltypes = input.readline()
     celltypes = celltypes.strip().split('\t')
@@ -17,7 +27,7 @@ def read_gene_expression():
     return gene_expression, celltypes, genes
 
 def read_training():
-    input = open('DREAM7_DrugSensitivity1_Drug_Response_Training.txt')
+    input = open_data('DREAM7_DrugSensitivity1_Drug_Response_Training.txt', 1)
     header = input.readline()
     celltypes = header.strip().split('\t')
     celltypes = celltypes[1:]
@@ -31,4 +41,4 @@ def read_training():
         drugs.append(tokens[0])
         drugvalues.append(map(asf,tokens[1:]))
         
-    return np.array(drugvalues)
+    return np.array(drugvalues), celltypes, drugs
