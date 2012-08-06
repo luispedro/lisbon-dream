@@ -14,5 +14,9 @@ class random_project(object):
         V = np.random.rand(m, self.nr_dims)
         features = np.dot(features, V)
         features /= features.mean()
-        x,residues,rank,s = np.linalg.lstsq(features, labels)
-        return product_predictor(np.dot(V,x))
+        xs = []
+        for i in xrange(n):
+            x,residues,rank,s = np.linalg.lstsq(features, labels[:,i])
+            xs.append(x)
+        xs = np.array(xs)
+        return product_predictor(np.dot(V,xs.T))
