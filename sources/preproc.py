@@ -7,7 +7,7 @@ for ci,ct in enumerate(celltypes):
     try:
         id = celltypes_ge.index(ct)
         features.append(gene_exp[:,id])
-        labels.append(training[:,ci])
+        labels.append(training[ci])
     except ValueError:
         pass
     

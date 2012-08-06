@@ -29,16 +29,17 @@ def read_gene_expression():
 def read_training():
     input = open_data('DREAM7_DrugSensitivity1_Drug_Response_Training.txt', 1)
     header = input.readline()
-    celltypes = header.strip().split('\t')
-    celltypes = celltypes[1:]
+    drugs = header.strip().split('\t')
+    drugs = drugs[1:]
     def asf(x):
         if x == 'NA': return float('NaN')
         return float(x)
-    drugs = []
+
     drugvalues = []
+    celltypes = []
     for line in input:
         tokens = line.strip().split('\t')
-        drugs.append(tokens[0])
+        celltypes.append(tokens[0])
         drugvalues.append(map(asf,tokens[1:]))
         
     return np.array(drugvalues), celltypes, drugs
