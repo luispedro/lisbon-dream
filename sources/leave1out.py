@@ -1,5 +1,5 @@
 from scipy import stats
-from random_predictor import *
+import numpy as np
 
 def leave1out(learner, features, labels):
     '''
