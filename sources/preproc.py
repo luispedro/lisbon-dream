@@ -14,5 +14,4 @@ def preproc():
         
     features = np.array(features)
     labels = np.array(labels)
-    labels[np.isnan(labels)] = 1+np.nanmax(labels)
     return features, labels
