@@ -1,6 +1,11 @@
 import numpy as np
 
 def open_data(fname, subchallenge):
+    '''
+    file_obj = open_data(fname, subchallenge)
+
+    Get input data (as an open file) for subchallenge ``subchallenge``
+    '''
     from os import path
     return open(path.join(
                 path.dirname(path.abspath(__file__)),
@@ -10,6 +15,9 @@ def open_data(fname, subchallenge):
                 fname))
 
 def read_gene_expression():
+    '''
+    gene_expression, celltypes, genes = read_gene_expression()
+    '''
     input = open_data('DREAM7_DrugSensitivity1_GeneExpression.txt', 1)
     data = []
     celltypes = input.readline()
@@ -27,6 +35,9 @@ def read_gene_expression():
     return gene_expression, celltypes, genes
 
 def read_training():
+    '''
+    drugvalues, celltypes, drugs = read_training()
+    '''
     input = open_data('DREAM7_DrugSensitivity1_Drug_Response_Training.txt', 1)
     header = input.readline()
     drugs = header.strip().split('\t')

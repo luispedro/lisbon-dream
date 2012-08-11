@@ -7,5 +7,8 @@ class random_result(object):
         return np.random.rand(self.dim)
 
 class random_learner(object):
+    '''
+    This does not actually learn anything. It just returns random values
+    '''
     def train(self, _, labels):
         return random_result(len(labels[0]))

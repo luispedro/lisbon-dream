@@ -8,6 +8,11 @@ class product_predictor(object):
         return np.dot(v, self.x)
 
 class random_project(object):
+    '''
+    Perform a random projection to ``nr_dims`` dimensions and then fit a
+    least-squares model on this space
+
+    '''
     def __init__(self, nr_dims=12):
         self.nr_dims = nr_dims
 

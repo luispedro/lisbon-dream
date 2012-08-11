@@ -1,13 +1,15 @@
 from scipy import stats
 import numpy as np
 
-def compare(predicted, gold):
+def _compare(predicted, gold):
     active = ~np.isnan(gold)
     return stats.spearmanr(predicted[active], gold[active])
 
 def leave1out(learner, features, labels):
     '''
-    avg_corr = leave1out(learner, features, labels):
+    avg_corr = leave1out(learner, features, labels)
+
+    Perform leave-1-out cross-validation on cell types
     '''
     predicted = []
     for i in xrange(len(labels)):
@@ -21,7 +23,7 @@ def leave1out(learner, features, labels):
     corrs = []
     pvals = []
     for p in predicted:
-        corr,ps = compare(p, labels[i])
+        corr,ps = _compare(p, labels[i])
         corrs.append(corr)
         pvals.append(ps)
     return np.mean(corrs)
