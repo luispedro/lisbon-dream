@@ -2,6 +2,22 @@ import numpy as np
 
 from projection import product_intercept_predictor
 
+def _learn(base, features, labels, alpha):
+    nr_celltypes,nr_features = features.shape
+    nr_celltypes_prime,nr_drugs = labels.shape
+    assert nr_celltypes_prime == nr_celltypes
+    betas = []
+    xs = []
+    for ci in xrange(nr_drugs):
+        clabels = labels[:,ci]
+        active = ~np.isnan(clabels)
+        clf = base(alpha=alpha)
+        clf.fit(features[active], labels[active,ci])
+        xs.append(clf.coef_.T.copy())
+        betas.append(clf.intercept_.copy())
+    return product_intercept_predictor(np.array(xs).T, np.array(betas))
+
+
 class ridge_regression(object):
     '''
     Perform a random projection to ``nr_dims`` dimensions and then fit a
@@ -13,12 +29,7 @@ class ridge_regression(object):
 
     def train(self, features, labels):
         from sklearn import linear_model
-        labels = labels.copy()
-        labels[np.isnan(labels)] = 0
-        clf = linear_model.Ridge(alpha=self.alpha)
-        clf.fit(features, labels)
-        return product_intercept_predictor(clf.coef_.T.copy(), clf.intercept_)
-
+        return _learn(linear_model.Ridge, features, labels, self.alpha)
 
 class lasso_regression(object):
     '''
@@ -31,10 +42,5 @@ class lasso_regression(object):
 
     def train(self, features, labels):
         from sklearn import linear_model
-        labels = labels.copy()
-        labels[np.isnan(labels)] = 0
-        clf = linear_model.Lasso(alpha=self.alpha)
-        clf.fit(features, labels)
-        return product_intercept_predictor(clf.coef_.T.copy(), clf.intercept_)
-
+        return _learn(linear_model.Lasso, features, labels, self.alpha)
 
