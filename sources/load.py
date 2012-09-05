@@ -14,9 +14,9 @@ def open_data(fname, subchallenge):
                 'DrugSensitivity%s' % subchallenge,
                 fname))
 
-def read_rnaseq():
+def _read_rnaseq(fname):
     import numpy as np
-    input = open_data('DREAM7_DrugSensitivity1_RNAseq_quantification.txt', 1)
+    input = open_data(fname, 1)
     data = []
     celltypes = input.readline()
     celltypes = celltypes.strip().split('\t')
@@ -30,6 +30,12 @@ def read_rnaseq():
 
     gene_transcripts = np.array(data)
     return gene_transcripts, celltypes, genes
+
+def read_rnaseq():
+    return _read_rnaseq('DREAM7_DrugSensitivity1_RNAseq_quantification.txt')
+
+def read_rnaseq_calls():
+    return _read_rnaseq('DREAM7_DrugSensitivity1_RNAseq_expressed_calls.txt')
 
 def read_gene_expression():
     '''
