@@ -6,13 +6,15 @@ def nanmean(arr, axis=None):
 
 def preproc():
     gene_exp,celltypes_ge,_ = read_gene_expression()
+    rna_seq,celltypes_rna,_ = read_rnaseq()
     training,celltypes,cs = read_training()
     labels = []
     features = []
     for ci,ct in enumerate(celltypes):
         try:
-            id = celltypes_ge.index(ct)
-            features.append(gene_exp[:,id])
+            gid = celltypes_ge.index(ct)
+            rid = celltypes_rna.index(ct)
+            features.append(np.hstack([gene_exp[:,gid], rna_seq[:,rid]]))
             labels.append(training[ci])
         except ValueError:
             pass
