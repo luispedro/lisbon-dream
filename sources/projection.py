@@ -7,6 +7,14 @@ class product_predictor(object):
     def apply_one(self, v):
         return np.dot(v, self.x)
 
+class product_intercept_predictor(object):
+    def __init__(self, x, beta):
+        self.x = x
+        self.beta = beta
+
+    def apply_one(self, v):
+        return np.dot(v, self.x) + self.beta
+
 class random_project(object):
     '''
     Perform a random projection to ``nr_dims`` dimensions and then fit a
