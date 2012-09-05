@@ -11,7 +11,10 @@ features,labels = preproc()
 
 for name,learner in [
         ('ridge', ridge_regression()),
-        ('lasso', lasso_regression()),
+        ('lasso(.05)', lasso_regression(.05)),
+        ('lasso(.5)', lasso_regression(.5)),
+        ('lasso(.8)', lasso_regression(.8)),
+        ('lasso(2)', lasso_regression(2)),
         ('random', random_learner()),
         ('random_project(12)', random_project(12)),
         ]:
