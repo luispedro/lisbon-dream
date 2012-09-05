@@ -23,7 +23,7 @@ def leave1out(learner, features, labels):
     corrs = []
     pvals = []
     for p in predicted:
-        corr,ps = _compare(p, labels[i])
+        corr,ps = _compare(p, labels.T[i])
         corrs.append(corr)
         pvals.append(ps)
     return np.mean(corrs)
