@@ -8,7 +8,7 @@ def nanmean(arr, axis=None):
 def zscore1(arr):
     arr = arr.copy()
     arr -= arr.mean(1)[:,None]
-    arr /= arr.var(1)[:,None]
+    arr /= arr.std(1)[:,None]
     return arr
 
 def preproc():
