@@ -4,6 +4,13 @@ def nanmean(arr, axis=None):
     nancounts = np.sum(~np.isnan(arr), axis=axis)
     return np.nansum(arr,axis=axis)/nancounts
 
+
+def zscore1(arr):
+    arr = arr.copy()
+    arr -= arr.mean(1)[:,None]
+    arr /= arr.var(1)[:,None]
+    return arr
+
 def preproc():
     gene_exp,celltypes_ge,_ = read_gene_expression()
     rna_seq,celltypes_rna,_ = read_rnaseq()
