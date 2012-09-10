@@ -11,7 +11,7 @@ leave1out = TaskGenerator(leave1out)
 def print_results(results):
     with open('results.txt', 'w') as output:
         for name in sorted(results.keys()):
-            print >>output, '{0:<40}: {1}'.format(name, int(100*results[name]))
+            print >>output, '{0:<40}: {1:.2}'.format(name, 100*results[name])
 
 
 def zscore_rna_seq():
