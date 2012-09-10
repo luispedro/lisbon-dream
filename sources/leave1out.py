@@ -3,6 +3,8 @@ import numpy as np
 
 def _compare(predicted, gold):
     active = ~np.isnan(gold)
+    if predicted[active].ptp() == 0:
+        return (0.,1.)
     return stats.spearmanr(predicted[active], gold[active])
 
 def leave1out(learner, features, labels):
