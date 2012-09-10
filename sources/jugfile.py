@@ -3,7 +3,7 @@ from leave1out import leave1out
 from projection import random_project
 from randomlearner import random_learner
 from regularized import ridge_regression, lasso_regression
-from preproc import preproc, rna_seq_active_only, zscore1
+from preproc import *
 import numpy as np
 
 leave1out = TaskGenerator(leave1out)
@@ -23,6 +23,7 @@ for lname,loader in [
                 ('rna+ge', preproc),
                 ('active', rna_seq_active_only),
                 ('active+zscore', zscore_rna_seq),
+                ('rna+ge+active+zscore', ge_rna_valid)
                 ]:
     preprocessed = Task(loader)
     features = preprocessed[0]
