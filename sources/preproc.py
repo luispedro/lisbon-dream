@@ -6,10 +6,8 @@ def nanmean(arr, axis=None):
 
 
 def zscore1(arr):
-    arr = arr.copy()
-    arr -= arr.mean(1)[:,None]
-    arr /= arr.std(1)[:,None]
-    return arr
+    from milk.unsupervised import zscore
+    return zscore(arr, axis=1)
 
 def preproc():
     gene_exp,celltypes_ge,_ = read_gene_expression()
