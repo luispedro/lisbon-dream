@@ -93,7 +93,7 @@ def ge_rna_valid():
     labels = np.array(labels)
     return features, labels, gene2ensembl
 
-def gosweigths():
+def rna_ge_gosweigths():
     import waldo
     from waldo import uniprot
     features,labels,gene2ensembl  = ge_rna_valid()
@@ -111,4 +111,12 @@ def gosweigths():
         for c in cur:
             ci = gos.index(c)
             gosweigths[:,ci] += f
-    return gosweigths, labels
+
+    from milk.unsupervised import pdist
+    dists = pdist(gosweigths.T)
+    X,Y = np.where(dists == 0)
+    select = np.ones(len(gosweigths.T), bool)
+    for x,y in zip(X,Y):
+        if x != y and select[x] and select[y]:
+            select[x] = 0
+    return gosweigths[:,select], labels

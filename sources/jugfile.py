@@ -26,7 +26,7 @@ for lname,loader in [
                 ('active', rna_seq_active_only),
                 ('active+zscore', zscore_rna_seq),
                 ('rna+ge+active+zscore', ge_rna_valid),
-                ('gosweigths', gosweigths),
+                ('gosweigths', rna_ge_gosweigths),
                 ]:
     preprocessed = Task(loader)
     features = preprocessed[0]
