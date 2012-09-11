@@ -20,6 +20,10 @@ def zscore_rna_seq():
     features, labels = rna_seq_active_only()
     return zscore1(features), labels
 
+def rna_ge_gosweigths_pruned():
+    features, labels = rna_ge_gosweigths()
+    return prune_similar(features, frac=.5), labels
+
 results = {}
 for lname,loader in [
                 ('rna+ge', preproc),
@@ -27,6 +31,7 @@ for lname,loader in [
                 ('active+zscore', zscore_rna_seq),
                 ('rna+ge+active+zscore', ge_rna_valid),
                 ('gosweigths', rna_ge_gosweigths),
+                ('prune(gosweigths, .5)', rna_ge_gosweigths_pruned),
                 ]:
     preprocessed = Task(loader)
     features = preprocessed[0]
@@ -44,6 +49,7 @@ for lname,loader in [
             ('lasso(2)', lasso_regression(2)),
             ('random', random_learner()),
             ('rproject(12)', random_project(12)),
+            ('rproject(24)', random_project(24)),
             ('rproject(128, ridge(.01))', random_project(128, ridge_regression(.01))),
             ('rproject(128, lasso(.01))', random_project(128, lasso_regression(.01))),
             ]:

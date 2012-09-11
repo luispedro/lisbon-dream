@@ -111,12 +111,20 @@ def rna_ge_gosweigths():
         for c in cur:
             ci = gos.index(c)
             gosweigths[:,ci] += f
+    return prune_similar(gosweigths), labels
 
+def prune_similar(features, threshold=None, frac=None):
     from milk.unsupervised import pdist
-    dists = pdist(gosweigths.T)
-    X,Y = np.where(dists == 0)
-    select = np.ones(len(gosweigths.T), bool)
+    dists = pdist(features.T)
+    if frac is not None:
+        Ds = dists.ravel().copy()
+        Ds.sort()
+        threshold = Ds[int(frac*len(Ds))]
+    elif threshold is None:
+        threshold = 0
+    X,Y = np.where(dists <= threshold)
+    select = np.ones(len(features.T), bool)
     for x,y in zip(X,Y):
         if x != y and select[x] and select[y]:
             select[x] = 0
-    return gosweigths[:,select], labels
+    return features[:,select]
