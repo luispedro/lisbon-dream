@@ -15,14 +15,40 @@ class product_intercept_predictor(object):
     def apply_one(self, v):
         return np.dot(v, self.x) + self.beta
 
+class ctransforms(object):
+    def __init__(self, models):
+        self.models = models
+
+    def apply_one(self, v):
+        for m in self.models:
+            v = m.apply_one(v)
+        return v
+
+class least_squares(object):
+    def train(self, features, labels):
+        nr_celltypes,nr_features = features.shape
+        nr_celltypes_prime,nr_drugs = labels.shape
+        assert nr_celltypes_prime == nr_celltypes
+        xs = []
+        for ci in xrange(nr_drugs):
+            clabels = labels[:,ci]
+            active = ~np.isnan(clabels)
+            x,residues,rank,s = np.linalg.lstsq(features[active], labels[active,ci])
+            xs.append(x)
+        return product_predictor(np.array(xs).T)
+
 class random_project(object):
     '''
     Perform a random projection to ``nr_dims`` dimensions and then fit a
     least-squares model on this space
 
     '''
-    def __init__(self, nr_dims=12):
+    def __init__(self, nr_dims=12, learner=None):
         self.nr_dims = nr_dims
+        if learner is None:
+            self.learner = least_squares()
+        else:
+            self.learner = learner
 
     def train(self, features, labels):
         nr_celltypes,nr_features = features.shape
@@ -31,11 +57,5 @@ class random_project(object):
         V = np.random.rand(nr_features, self.nr_dims)
         features = np.dot(features, V)
         features /= features.mean()
-        xs = []
-        for ci in xrange(nr_drugs):
-            clabels = labels[:,ci]
-            active = ~np.isnan(clabels)
-            x,residues,rank,s = np.linalg.lstsq(features[active], labels[active,ci])
-            xs.append(x)
-        xs = np.array(xs)
-        return product_predictor(np.dot(V,xs.T))
+        inner = self.learner.train(features, labels)
+        return ctransforms([product_predictor(V), inner])
