@@ -55,11 +55,11 @@ def ge_rna_valid():
     rna_seqcalls,rsc_cells, rsc_genes = read_rnaseq_calls()
     valid = rna_seqcalls.ptp(1) == 1
     rsc_genes = np.array(rsc_genes)
-    validgenes = set(rsc_genes[valid,0])
+    gene2ensembl = {g:e for g,e in rsc_genes[valid]}
     GE = []
     R = []
     r_genes = [g for g,_ in rsc_genes]
-    for g in validgenes:
+    for g in gene2ensembl:
         try:
             gi = ge_genes.index(g)
             ri = r_genes.index(g)
@@ -91,4 +91,24 @@ def ge_rna_valid():
             labels.append(training[ci])
     features = np.array(features)
     labels = np.array(labels)
-    return features, labels
+    return features, labels, gene2ensembl
+
+def gosweigths():
+    import waldo
+    from waldo import uniprot
+    features,labels,gene2ensembl  = ge_rna_valid()
+    gos = set()
+    for g in gene2ensembl:
+        uniprot_name = waldo.translate(gene2ensembl[g], 'ensembl:gene_id', 'uniprot:name')
+        cur = uniprot.retrieve_go_annotations(uniprot_name, only_cellular_component=False)
+        gos.update(cur)
+    gos = list(gos)
+    gosweigths = np.zeros((len(features), len(gos)), np.float)
+
+    for f,g in zip(features.T, gene2ensembl.keys()):
+        uniprot_name = waldo.translate(gene2ensembl[g], 'ensembl:gene_id', 'uniprot:name')
+        cur = uniprot.retrieve_go_annotations(uniprot_name, only_cellular_component=False)
+        for c in cur:
+            ci = gos.index(c)
+            gosweigths[:,ci] += f
+    return gosweigths, labels
