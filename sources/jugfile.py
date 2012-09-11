@@ -33,6 +33,9 @@ for lname,loader in [
 
     for name,learner in [
             ('ridge', ridge_regression()),
+            ('ridge(.001)', ridge_regression(.001)),
+            ('ridge(1.)', ridge_regression(1.)),
+            ('lasso(.0002)', lasso_regression(.0002)),
             ('lasso(.05)', lasso_regression(.05)),
             ('lasso(.5)', lasso_regression(.5)),
             ('lasso(.8)', lasso_regression(.8)),
