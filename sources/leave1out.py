@@ -31,4 +31,4 @@ def leave1out(learner, features, labels):
         corr,ps = _compare(p, ell)
         corrs.append(corr)
         pvals.append(ps)
-    return np.mean(corrs)
+    return np.array([corrs,ps])
