@@ -4,6 +4,11 @@ def nanmean(arr, axis=None):
     nancounts = np.sum(~np.isnan(arr), axis=axis)
     return np.nansum(arr,axis=axis)/nancounts
 
+def normlabels(labels):
+    labels = np.array(labels)
+    labels -= nanmean(labels, 0)
+    return labels
+
 
 def zscore1(arr):
     from milk.unsupervised import zscore
@@ -24,9 +29,7 @@ def preproc():
         except ValueError:
             pass
     features = np.array(features)
-    labels = np.array(labels)
-    labels -= nanmean(labels, 0)
-    return features, labels
+    return features, normlabels(labels)
 
 def rna_seq_active_only():
     rna_seq,celltypes_rna,rna_types = read_rnaseq()
@@ -44,9 +47,7 @@ def rna_seq_active_only():
         except ValueError:
             pass
     features = np.array(features)
-    labels = np.array(labels)
-    labels -= nanmean(labels, 0)
-    return features, labels
+    return features, normlabels(labels)
 
 
 def ge_rna_valid():
@@ -90,8 +91,7 @@ def ge_rna_valid():
             features.append(np.array(cur).mean(0))
             labels.append(training[ci])
     features = np.array(features)
-    labels = np.array(labels)
-    return features, labels, gene2ensembl
+    return features, normlabels(labels), gene2ensembl
 
 def rna_ge_gosweigths():
     import waldo
@@ -111,7 +111,7 @@ def rna_ge_gosweigths():
         for c in cur:
             ci = gos.index(c)
             gosweigths[:,ci] += f
-    return prune_similar(gosweigths), labels
+    return prune_similar(gosweigths), normlabels(labels)
 
 def prune_similar(features, threshold=None, frac=None):
     from milk.unsupervised import pdist
