@@ -56,8 +56,8 @@
 \DeclareMathOperator{\goodness}{score}
 \DeclareMathOperator{\powerset}{Pow}
 
-\title{<+title+>}
-\author{<+author+>}
+\title{DREAM7: Drug Challenge}
+\author{Luis Pedro Coelho}
 
 \bibliographystyle{alpha}
 %\bibliographystyle{plain}
@@ -128,5 +128,19 @@
 
 \SetCommentSty{textsl}
 \begin{document}
-<+content+>
+\chapter{Methods}
+\subsection{Random Projection}
+
+As a dimensionality reduction, we tried a random projection
+\begin{equation}
+X' = VX,
+\label{eq:rproject}
+\end{equation}
+where $X$ is the original feature matrix, $X'$ is the transformed feature
+matrix and $V$ is a matrix of the apropriate size, randomly sampled as
+\begin{equation}
+V_{i,j} ~ U[0,1].
+\label{eq:rproject:Vij}
+\end{equation}
+
 \end{document}
