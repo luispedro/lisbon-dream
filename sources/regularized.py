@@ -11,7 +11,7 @@ def _learn(base, features, labels, alpha):
     for ci in xrange(nr_drugs):
         clabels = labels[:,ci]
         active = ~np.isnan(clabels)
-        clf = base(alpha=alpha)
+        clf = base(alpha)
         clf.fit(features[active], labels[active,ci])
         xs.append(clf.coef_.T.copy())
         betas.append(clf.intercept_.copy())
@@ -33,8 +33,6 @@ class ridge_regression(object):
 
 class lasso_regression(object):
     '''
-    Perform a random projection to ``nr_dims`` dimensions and then fit a
-    least-squares model on this space
 
     '''
     def __init__(self, alpha=.128):
@@ -43,4 +41,15 @@ class lasso_regression(object):
     def train(self, features, labels):
         from sklearn import linear_model
         return _learn(linear_model.Lasso, features, labels, self.alpha)
+
+class lars_regression(object):
+    '''
+
+    '''
+    def __init__(self, nr_coeffs):
+        self.nr_coeffs = nr_coeffs
+
+    def train(self, features, labels):
+        from sklearn import linear_model
+        return _learn(linear_model.Lars, features, labels, self.nr_coeffs)
 
