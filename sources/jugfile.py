@@ -17,8 +17,9 @@ def print_results(results):
 
 
 def zscore_rna_seq():
+    from milk.unsupervised import zscore
     features, labels = rna_seq_active_only()
-    return zscore1(features), labels
+    return zscore(features, axis=1), labels
 
 def rna_ge_gosweigths_pruned():
     features, labels = rna_ge_gosweigths()
@@ -41,6 +42,7 @@ for lname,data in [
                 ('rna+ge+active+zscore', Task(ge_rna_valid)),
                 ('rna+ge+active(maxabs)+zscore', Task(ge_rna_valid,'max(abs)')),
                 ('gosweigths', Task(rna_ge_gosweigths)),
+                ('gosweigths-maxabs', Task(rna_ge_gosweigths, 'maxabs')),
                 ('prune(gosweigths, .5)', Task(rna_ge_gosweigths_pruned)),
                 ]:
     features = data[0]
@@ -58,6 +60,7 @@ for lname,data in [
             ('lasso(2)', lasso_regression(2)),
             ('random(1)', random_learner(1)),
             ('random(2)', random_learner(2)),
+            ('random(3)', random_learner(3)),
             ('rproject(12)', random_project(12)),
             ('rproject(24)', random_project(24)),
             ('rproject(128, ridge(.01))', random_project(128, ridge_regression(.01))),

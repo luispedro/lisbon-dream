@@ -23,10 +23,6 @@ def normlabels(labels, axis=0):
     return labels
 
 
-def zscore1(arr):
-    from milk.unsupervised import zscore
-    return zscore(arr, axis=1)
-
 def rna_ge_concatenated():
     gene_exp,celltypes_ge,_ = read_gene_expression()
     rna_seq,celltypes_rna,_ = read_rnaseq()
@@ -64,6 +60,7 @@ def rna_seq_active_only():
 
 
 def ge_rna_valid(aggr='mean'):
+    from milk.unsupervised import zscore
     rna_seq,celltypes_rna,rna_types = read_rnaseq()
     gene_exp,celltypes_ge,ge_genes = read_gene_expression()
     rna_seqcalls,rsc_cells, rsc_genes = read_rnaseq_calls()
@@ -83,8 +80,8 @@ def ge_rna_valid(aggr='mean'):
             pass
     R = np.array(R)
     GE = np.array(GE)
-    R = zscore1(R)
-    GE = zscore1(GE)
+    R = zscore(R, axis=1)
+    GE = zscore(GE, axis=1)
     training,celltypes,cs = read_training()
     features = []
     labels = []
@@ -109,7 +106,7 @@ def ge_rna_valid(aggr='mean'):
     features = np.array(features)
     return features, np.array(labels), gene2ensembl
 
-def rna_ge_gosweigths():
+def rna_ge_gosweigths(ag='add'):
     import waldo
     from waldo import uniprot
     features,labels,gene2ensembl  = ge_rna_valid()
@@ -126,7 +123,11 @@ def rna_ge_gosweigths():
         cur = uniprot.retrieve_go_annotations(uniprot_name, only_cellular_component=False)
         for c in cur:
             ci = gos.index(c)
-            gosweigths[:,ci] += f
+            if ag == 'add':
+                gosweigths[:,ci] += f
+            elif ag == 'maxabs':
+                gosweigths[:,ci] += f * (np.abs(f) > np.abs(gosweigths[:, ci]))
+
     return prune_similar(gosweigths), np.array(labels)
 
 def prune_similar(features, threshold=None, frac=None):
