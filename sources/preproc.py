@@ -27,6 +27,7 @@ def rna_ge_concatenated():
     gene_exp,celltypes_ge,_ = read_gene_expression()
     rna_seq,celltypes_rna,_ = read_rnaseq()
     training,celltypes,cs = read_training()
+    rna_seq = np.log1p(rna_seq)
     labels = []
     features = []
     for ci,ct in enumerate(celltypes):
@@ -44,6 +45,7 @@ def rna_seq_active_only():
     rna_seq,celltypes_rna,rna_types = read_rnaseq()
     rna_seqcalls,rsc_cells, rsc_genes = read_rnaseq_calls()
     training,celltypes,cs = read_training()
+    rna_seq = np.log1p(rna_seq)
     ptp = rna_seqcalls.ptp(1)
     valid = (ptp == 1)
     features = []
@@ -64,6 +66,7 @@ def ge_rna_valid(aggr='mean'):
     rna_seq,celltypes_rna,rna_types = read_rnaseq()
     gene_exp,celltypes_ge,ge_genes = read_gene_expression()
     rna_seqcalls,rsc_cells, rsc_genes = read_rnaseq_calls()
+    rna_seq = np.log1p(rna_seq)
     valid = rna_seqcalls.ptp(1) == 1
     rsc_genes = np.array(rsc_genes)
     gene2ensembl = {g:e for g,e in rsc_genes[valid]}
@@ -100,7 +103,7 @@ def ge_rna_valid(aggr='mean'):
         if len(cur):
             if aggr == 'mean':
                 features.append(np.array(cur).mean(0))
-            elif aggr in ('maxabs', 'max(abs)'):
+            elif aggr == 'maxabs':
                 features.append(maxabs(cur))
             labels.append(training[ci])
     features = np.array(features)
