@@ -28,3 +28,9 @@ class select_learner(object):
     def train(self, features, labels):
         return select_model(select(features, labels))
 
+class remove_constant_features(object):
+    def train(self, features, labels):
+        from milk.supervised.featureselection import filterfeatures
+        constant = features.ptp(0) != 0
+        return filterfeatures(constant)
+

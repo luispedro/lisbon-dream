@@ -2,7 +2,7 @@ from jug import Task, TaskGenerator
 from leave1out import leave1out
 from projection import random_project
 from randomlearner import random_learner
-from selectlearner import select_learner
+from selectlearner import *
 from regularized import ridge_regression, lasso_regression, lars_regression
 from preproc import *
 import numpy as np
@@ -47,15 +47,11 @@ for lname,data in [
     for name,learner in [
             ('ridge(.128)', ridge_regression(.128)),
             ('ridge(.001)', ridge_regression(.001)),
-            ('select+ridge(.001)', ctransforms(select_learner(), ridge_regression(.001))),
-            ('select+ridge(.001)', ctransforms(select_learner(), lasso_regression(.01))),
+            ('select+ridge(.001)', ctransforms(remove_constant_features(), select_learner(), ridge_regression(.001))),
+            ('select+ridge(.001)', ctransforms(remove_constant_features(), select_learner(), lasso_regression(.01))),
             ('ridge(1.)', ridge_regression(1.)),
             ('lasso(.000000002)', lasso_regression(.000000002)),
             ('lasso(.0002)', lasso_regression(.0002)),
-            ('lasso(.05)', lasso_regression(.05)),
-            ('lasso(.5)', lasso_regression(.5)),
-            ('lasso(.8)', lasso_regression(.8)),
-            ('lasso(2)', lasso_regression(2)),
             ('random(1)', random_learner(1)),
             ('random(2)', random_learner(2)),
             ('random(3)', random_learner(3)),
