@@ -26,13 +26,12 @@ def rna_ge_gosweigths_pruned():
     return prune_similar(features, frac=.5), labels
 
 class norm_learner(object):
-    def __init__(self, base):
+    def __init__(self, base, axis):
         self.base = base
+        self.axis = axis
 
     def train(self, features, labels):
-        return self.base.train(features, normlabels.f(labels, 1))
-
-normlabels = TaskGenerator(normlabels)
+        return self.base.train(features, normlabels(labels, self.axis))
 
 results = {}
 for lname,data in [
@@ -67,8 +66,9 @@ for lname,data in [
             ('rproject(128, lasso(.01))', random_project(128, lasso_regression(.01))),
             ]:
         results['{0}-{1}'.format(lname,name)] = leave1out(learner, features, labels)
-        results['{0}-normed-{1}'.format(lname,name)] = leave1out(learner, features, normlabels(labels))
-        learner = norm_learner(learner)
-        results['{0}-normed1-{1}'.format(lname,name)] = leave1out(learner, features, labels)
+        learner0 = norm_learner(learner, 0)
+        learner1 = norm_learner(learner, 1)
+        results['{0}-normed0-{1}'.format(lname,name)] = leave1out(learner0, features, labels)
+        results['{0}-normed1-{1}'.format(lname,name)] = leave1out(learner1, features, labels)
 
 print_results(results)
