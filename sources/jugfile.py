@@ -33,22 +33,18 @@ class norm_learner(object):
 
 normlabels = TaskGenerator(normlabels)
 
-def ge_rna_valid_maxabs():
-    return ge_rna_valid('max(abs)')
-
 results = {}
-for lname,loader in [
-                ('rna+ge', rna_ge_concatenated),
-                ('active', rna_seq_active_only),
-                ('active+zscore', zscore_rna_seq),
-                ('rna+ge+active+zscore', ge_rna_valid),
-                ('rna+ge+active(maxabs)+zscore', ge_rna_valid_maxabs),
-                ('gosweigths', rna_ge_gosweigths),
-                ('prune(gosweigths, .5)', rna_ge_gosweigths_pruned),
+for lname,data in [
+                ('rna+ge', Task(rna_ge_concatenated)),
+                ('active', Task(rna_seq_active_only)),
+                ('active+zscore', Task(zscore_rna_seq)),
+                ('rna+ge+active+zscore', Task(ge_rna_valid)),
+                ('rna+ge+active(maxabs)+zscore', Task(ge_rna_valid,'max(abs)')),
+                ('gosweigths', Task(rna_ge_gosweigths)),
+                ('prune(gosweigths, .5)', Task(rna_ge_gosweigths_pruned)),
                 ]:
-    preprocessed = Task(loader)
-    features = preprocessed[0]
-    labels = preprocessed[1]
+    features = data[0]
+    labels = data[1]
 
     for name,learner in [
             ('ridge(.128)', ridge_regression(.128)),
