@@ -48,7 +48,7 @@ for lname,data in [
             ('ridge(.128)', ridge_regression(.128)),
             ('ridge(.001)', ridge_regression(.001)),
             ('select+ridge(.001)', ctransforms(remove_constant_features(), select_learner(), ridge_regression(.001))),
-            ('select+ridge(.001)', ctransforms(remove_constant_features(), select_learner(), lasso_regression(.01))),
+            ('select+lasso(.001)', ctransforms(remove_constant_features(), select_learner(), lasso_regression(.01))),
             ('ridge(1.)', ridge_regression(1.)),
             ('lasso(.000000002)', lasso_regression(.000000002)),
             ('lasso(.0002)', lasso_regression(.0002)),
