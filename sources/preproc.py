@@ -100,7 +100,7 @@ def ge_rna_valid(aggr='mean'):
         if len(cur):
             if aggr == 'mean':
                 features.append(np.array(cur).mean(0))
-            elif aggr == 'max(abs)':
+            elif aggr in ('maxabs', 'max(abs)'):
                 features.append(maxabs(cur))
             labels.append(training[ci])
     features = np.array(features)
