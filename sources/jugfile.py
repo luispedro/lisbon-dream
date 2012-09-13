@@ -2,9 +2,11 @@ from jug import Task, TaskGenerator
 from leave1out import leave1out
 from projection import random_project
 from randomlearner import random_learner
-from regularized import ridge_regression, lasso_regression
+from selectlearner import select_learner
+from regularized import ridge_regression, lasso_regression, lars_regression
 from preproc import *
 import numpy as np
+from milk.supervised.classifier import ctransforms
 
 leave1out = TaskGenerator(leave1out)
 @TaskGenerator
@@ -16,10 +18,6 @@ def print_results(results):
             print >>output, '{0:<64}: {1: .2%}'.format(name, val)
 
 
-def zscore_rna_seq():
-    from milk.unsupervised import zscore
-    features, labels = rna_seq_active_only()
-    return zscore(features, axis=1), labels
 
 def rna_ge_gosweigths_pruned():
     features, labels = rna_ge_gosweigths()
@@ -37,9 +35,8 @@ results = {}
 for lname,data in [
                 ('rna+ge', Task(rna_ge_concatenated)),
                 ('active', Task(rna_seq_active_only)),
-                ('active+zscore', Task(zscore_rna_seq)),
                 ('rna+ge+active+zscore', Task(ge_rna_valid)),
-                ('rna+ge+active(maxabs)+zscore', Task(ge_rna_valid,'max(abs)')),
+                ('rna+ge+active(maxabs)+zscore', Task(ge_rna_valid,'maxabs')),
                 ('gosweigths', Task(rna_ge_gosweigths)),
                 ('gosweigths-maxabs', Task(rna_ge_gosweigths, 'maxabs')),
                 ('prune(gosweigths, .5)', Task(rna_ge_gosweigths_pruned)),
@@ -50,6 +47,8 @@ for lname,data in [
     for name,learner in [
             ('ridge(.128)', ridge_regression(.128)),
             ('ridge(.001)', ridge_regression(.001)),
+            ('select+ridge(.001)', ctransforms(select_learner(), ridge_regression(.001))),
+            ('select+ridge(.001)', ctransforms(select_learner(), lasso_regression(.01))),
             ('ridge(1.)', ridge_regression(1.)),
             ('lasso(.000000002)', lasso_regression(.000000002)),
             ('lasso(.0002)', lasso_regression(.0002)),
@@ -64,6 +63,8 @@ for lname,data in [
             ('rproject(24)', random_project(24)),
             ('rproject(128, ridge(.01))', random_project(128, ridge_regression(.01))),
             ('rproject(128, lasso(.01))', random_project(128, lasso_regression(.01))),
+            ('rproject(256, ridge(.01))', random_project(256, ridge_regression(.01))),
+            ('rproject(256, lasso(.01))', random_project(256, lasso_regression(.01))),
             ]:
         results['{0}-{1}'.format(lname,name)] = leave1out(learner, features, labels)
         learner0 = norm_learner(learner, 0)
