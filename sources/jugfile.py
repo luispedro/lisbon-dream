@@ -33,12 +33,16 @@ class norm_learner(object):
 
 normlabels = TaskGenerator(normlabels)
 
+def ge_rna_valid_maxabs():
+    return ge_rna_valid('max(abs)')
+
 results = {}
 for lname,loader in [
-                ('rna+ge', preproc),
+                ('rna+ge', rna_ge_concatenated),
                 ('active', rna_seq_active_only),
                 ('active+zscore', zscore_rna_seq),
                 ('rna+ge+active+zscore', ge_rna_valid),
+                ('rna+ge+active(maxabs)+zscore', ge_rna_valid_maxabs),
                 ('gosweigths', rna_ge_gosweigths),
                 ('prune(gosweigths, .5)', rna_ge_gosweigths_pruned),
                 ]:

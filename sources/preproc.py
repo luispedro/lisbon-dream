@@ -5,8 +5,14 @@ def nanmean(arr, axis=None):
     nancounts = np.sum(~np.isnan(arr), axis=axis)
     return np.nansum(arr,axis=axis)/nancounts
 
+def maxabs(arr):
+    arr = np.asanyarray(arr)
+    select = np.abs(arr).argmax(0)
+    return arr[select]
+
 def normlabels(labels, axis=0):
     labels = np.array(labels)
+    labels = labels.copy()
     if axis == 0:
         labels -= nanmean(labels, axis)
     elif axis == 1:
@@ -21,7 +27,7 @@ def zscore1(arr):
     from milk.unsupervised import zscore
     return zscore(arr, axis=1)
 
-def preproc():
+def rna_ge_concatenated():
     gene_exp,celltypes_ge,_ = read_gene_expression()
     rna_seq,celltypes_rna,_ = read_rnaseq()
     training,celltypes,cs = read_training()
@@ -57,7 +63,7 @@ def rna_seq_active_only():
     return features, np.array(labels)
 
 
-def ge_rna_valid():
+def ge_rna_valid(aggr='mean'):
     rna_seq,celltypes_rna,rna_types = read_rnaseq()
     gene_exp,celltypes_ge,ge_genes = read_gene_expression()
     rna_seqcalls,rsc_cells, rsc_genes = read_rnaseq_calls()
@@ -95,7 +101,10 @@ def ge_rna_valid():
         except ValueError:
             pass
         if len(cur):
-            features.append(np.array(cur).mean(0))
+            if aggr == 'mean':
+                features.append(np.array(cur).mean(0))
+            elif aggr == 'max(abs)':
+                features.append(maxabs(cur))
             labels.append(training[ci])
     features = np.array(features)
     return features, np.array(labels), gene2ensembl
