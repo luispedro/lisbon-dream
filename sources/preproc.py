@@ -8,7 +8,7 @@ def nanmean(arr, axis=None):
 def maxabs(arr):
     arr = np.asanyarray(arr)
     select = np.abs(arr).argmax(0)
-    return arr[select]
+    return np.array([arr[y,x] for x,y in enumerate(select)])
 
 def normlabels(labels, axis=0):
     labels = np.array(labels)
