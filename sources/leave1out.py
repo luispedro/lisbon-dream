@@ -22,7 +22,7 @@ def leave1out(learner, features, labels):
         idx = np.ones(len(labels), bool)
         idx[i] = 0
         model = learner.train(features[idx], labels[idx])
-        predicted.append(model.apply_one(features[i]))
+        predicted.append(model.apply(features[i]))
     predicted = np.array(predicted)
 
     corrs = []

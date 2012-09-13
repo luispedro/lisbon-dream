@@ -4,7 +4,7 @@ class random_result(object):
         self.dim = dim
         self.R = R
 
-    def apply_one(self, _):
+    def apply(self, _):
         return self.R.rand(self.dim)
 
 class random_learner(object):

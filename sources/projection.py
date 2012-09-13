@@ -4,7 +4,7 @@ class product_predictor(object):
     def __init__(self, x):
         self.x = x
 
-    def apply_one(self, v):
+    def apply(self, v):
         return np.dot(v, self.x)
 
 class product_intercept_predictor(object):
@@ -12,17 +12,8 @@ class product_intercept_predictor(object):
         self.x = x
         self.beta = beta
 
-    def apply_one(self, v):
+    def apply(self, v):
         return np.dot(v, self.x) + self.beta
-
-class ctransforms(object):
-    def __init__(self, models):
-        self.models = models
-
-    def apply_one(self, v):
-        for m in self.models:
-            v = m.apply_one(v)
-        return v
 
 class least_squares(object):
     def train(self, features, labels):
@@ -51,6 +42,7 @@ class random_project(object):
             self.learner = learner
 
     def train(self, features, labels):
+        from milk.supervised.classifier import ctransforms_model
         nr_celltypes,nr_features = features.shape
         nr_celltypes_prime,nr_drugs = labels.shape
         assert nr_celltypes_prime == nr_celltypes
@@ -58,4 +50,4 @@ class random_project(object):
         features = np.dot(features, V)
         features /= features.mean()
         inner = self.learner.train(features, labels)
-        return ctransforms([product_predictor(V), inner])
+        return ctransforms_model([product_predictor(V), inner])
