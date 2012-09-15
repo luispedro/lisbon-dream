@@ -3,7 +3,7 @@ from leave1out import leave1out
 from projection import random_project
 from randomlearner import random_learner
 from selectlearner import *
-from regularized import ridge_regression, lasso_regression, lars_regression
+from regularized import ridge_regression, lasso_regression, lars_regression, lasso_path_regression
 from preproc import *
 import numpy as np
 from milk.supervised.classifier import ctransforms
@@ -48,19 +48,17 @@ for lname,data in [
             ('ridge(.128)', ridge_regression(.128)),
             ('ridge(.001)', ridge_regression(.001)),
             ('select+ridge(.001)', ctransforms(remove_constant_features(), select_learner(), ridge_regression(.001))),
-            ('select+lasso(.001)', ctransforms(remove_constant_features(), select_learner(), lasso_regression(.01))),
+            ('select+lasso_path', ctransforms(remove_constant_features(), select_learner(), lasso_path_regression())),
             ('ridge(1.)', ridge_regression(1.)),
-            ('lasso(.000000002)', lasso_regression(.000000002)),
-            ('lasso(.0002)', lasso_regression(.0002)),
+            ('lasso_path', lasso_path_regression()),
             ('random(1)', random_learner(1)),
             ('random(2)', random_learner(2)),
             ('random(3)', random_learner(3)),
             ('rproject(12)', random_project(12)),
             ('rproject(24)', random_project(24)),
             ('rproject(128, ridge(.01))', random_project(128, ridge_regression(.01))),
-            ('rproject(128, lasso(.01))', random_project(128, lasso_regression(.01))),
-            ('rproject(256, ridge(.01))', random_project(256, ridge_regression(.01))),
-            ('rproject(256, lasso(.01))', random_project(256, lasso_regression(.01))),
+            ('rproject(128, lasso_path)', random_project(128, lasso_path_regression())),
+            ('rproject(256, lasso_path)', random_project(256, lasso_path_regression())),
             ]:
         results['{0}-{1}'.format(lname,name)] = leave1out(learner, features, labels)
         learner0 = norm_learner(learner, 0)
