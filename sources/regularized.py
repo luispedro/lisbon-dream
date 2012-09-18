@@ -52,9 +52,7 @@ class lasso_path_regression(object):
             active = ~np.isnan(ells)
             fi = features[active]
             ells = ells[active]
-            print 'Calling path ({0})...'.format(ci)
             fits = linear_model.lasso_path(fi, ells)
-            print 'done'
             xs.append(fits[-1].coef_.T.copy())
             betas.append(fits[-1].intercept_.copy())
         return product_intercept_predictor(np.array(xs).T, np.array(betas))
