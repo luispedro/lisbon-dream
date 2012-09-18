@@ -57,6 +57,17 @@ def read_gene_expression():
     gene_expression = np.array(data)
     return gene_expression, celltypes, genes
 
+
+def read_methyl():
+    import numpy as np
+    ifile = open_data('DREAM7_DrugSensitivity1_Methylation.txt', 1)
+    headers = ifile.readline().strip().split('\t')
+    data = [line.strip().split('\t') for line in ifile]
+    methyl = np.array([map(float,d[4:]) for d in data])
+    CpGs = np.array([int(d[2]) for d in data])
+    return methyl,CpGs
+
+
 def read_training():
     '''
     drugvalues, celltypes, drugs = read_training()
