@@ -19,7 +19,7 @@ def print_results(results):
 
 
 
-def rna_ge_gosweigths_pruned():
+def rna_ge_gosweigths_pruned(frac=.5):
     features, labels = rna_ge_gosweigths()
     return prune_similar(features, frac=.5), labels
 
@@ -40,6 +40,8 @@ for lname,data in [
                 ('gosweigths', Task(rna_ge_gosweigths)),
                 ('gosweigths-maxabs', Task(rna_ge_gosweigths, 'maxabs')),
                 ('prune(gosweigths, .5)', Task(rna_ge_gosweigths_pruned)),
+                ('prune(gosweigths, .9)', Task(rna_ge_gosweigths_pruned, .9)),
+                ('prune(gosweigths, .95)', Task(rna_ge_gosweigths_pruned, .95)),
                 ]:
     features = data[0]
     labels = data[1]
@@ -59,6 +61,7 @@ for lname,data in [
             ('rproject(128, ridge(.01))', random_project(128, ridge_regression(.01))),
             ('rproject(128, lasso_path)', random_project(128, lasso_path_regression())),
             ('rproject(256, lasso_path)', random_project(256, lasso_path_regression())),
+            ('rproject(1024, lasso_path)', random_project(1024, lasso_path_regression())),
             ]:
         results['{0}-{1}'.format(lname,name)] = leave1out(learner, features, labels)
         learner0 = norm_learner(learner, 0)
