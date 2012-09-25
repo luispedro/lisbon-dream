@@ -96,7 +96,11 @@ def read_sub2():
     ifile = open_data('ACalifano_DLBCL_Ly3_14Comp_treatment.txt', 2)
     gene_names = ifile.readline().strip().split('\t')
     drugs = ifile.readline().strip().split('\t')
-    drugs = np.array(drugs[2:])
+    drugs = drugs[2:]
+    for i in xrange(len(drugs)):
+        if drugs[i][0] == '"' and drugs[i][-1] == '"':
+            drugs[i] = drugs[i][1:-1]
+    drugs = np.array(drugs)
     times = ifile.readline().strip().split('\t')
     times = np.array(map(int, times[2:]))
     concentrations = ifile.readline().strip().split('\t')
