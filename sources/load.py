@@ -88,3 +88,30 @@ def read_training():
         drugvalues.append(map(asf,tokens[1:]))
         
     return np.array(drugvalues), celltypes, drugs
+
+def read_sub2():
+    '''
+    data, drugs, times, concentrations, gene_names = read_sub2()
+    '''
+    ifile = open_data('ACalifano_DLBCL_Ly3_14Comp_treatment.txt', 2)
+    gene_names = ifile.readline().strip().split('\t')
+    drugs = ifile.readline().strip().split('\t')
+    drugs = np.array(drugs[2:])
+    times = ifile.readline().strip().split('\t')
+    times = np.array(map(int, times[2:]))
+    concentrations = ifile.readline().strip().split('\t')
+    concentrations = np.array(concentrations[2:])
+
+    data = []
+    genes = []
+
+    while True:
+        line = ifile.readline()
+        if not line:
+            break
+        tokens = line.strip().split('\t')
+        genes.append((tokens[0], tokens[1]))
+        data.append(map(float, tokens[2:]))
+
+    data = np.array(data)
+    return data, drugs, times, concentrations, gene_names
