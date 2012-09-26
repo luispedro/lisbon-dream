@@ -3,7 +3,7 @@ from leave1out import leave1out
 from projection import random_project
 from randomlearner import random_learner
 from selectlearner import *
-from regularized import ridge_regression, lasso_regression, lars_regression, lasso_path_regression
+from regularized import ridge_regression, lasso_regression, lasso_path_regression
 from preproc import *
 import numpy as np
 from milk.supervised.classifier import ctransforms

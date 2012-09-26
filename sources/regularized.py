@@ -54,15 +54,3 @@ class lasso_path_regression(object):
             xs.append(fits[-1].coef_.T.copy())
             betas.append(fits[-1].intercept_.copy())
         return product_intercept_predictor(np.array(xs).T, np.array(betas))
-
-class lars_regression(object):
-    '''
-
-    '''
-    def __init__(self, nr_coeffs):
-        self.nr_coeffs = nr_coeffs
-
-    def train(self, features, labels):
-        from sklearn import linear_model
-        return _learn(linear_model.Lars, features, labels, self.nr_coeffs)
-
