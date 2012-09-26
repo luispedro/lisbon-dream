@@ -1,6 +1,14 @@
-import numpy as np
+from milk.supervised import lasso_learner
 
 from projection import product_intercept_predictor
+import numpy as np
+
+class lasso_regression(object):
+    def __init__(self, lam):
+        self.learner = lasso_learner(lam)
+
+    def train(self, features, labels):
+        return self.learner.train(features.T, labels.T)
 
 def _learn(base, features, labels, alpha):
     nr_celltypes,nr_features = features.shape
@@ -31,16 +39,6 @@ class ridge_regression(object):
         from sklearn import linear_model
         return _learn(linear_model.Ridge, features, labels, self.alpha)
 
-class lasso_regression(object):
-    '''
-
-    '''
-    def __init__(self, alpha=.128):
-        self.alpha = alpha
-
-    def train(self, features, labels):
-        from sklearn import linear_model
-        return _learn(linear_model.Lasso, features, labels, self.alpha)
 
 class lasso_path_regression(object):
 
