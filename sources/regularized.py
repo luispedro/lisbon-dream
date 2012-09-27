@@ -1,4 +1,5 @@
 from milk.supervised import lasso_learner
+from milk.supervised import lasso_model_walk
 
 from projection import product_intercept_predictor
 import numpy as np
@@ -54,3 +55,36 @@ class lasso_path_regression(object):
             xs.append(fits[-1].coef_.T.copy())
             betas.append(fits[-1].intercept_.copy())
         return product_intercept_predictor(np.array(xs).T, np.array(betas))
+
+
+def select_lam(features, labels):
+    from leave1out import spearnan_compare
+    predicted = []
+    for i in xrange(len(labels)):
+        idx = np.ones(len(labels), bool)
+        idx[i] = 0
+        models,lams = lasso_model_walk(features[idx].T, labels[idx].T, start=.1, step=.72, nr_steps=80, return_lams=True)
+        predicted.append([model.apply(features[i].T) for model in models])
+    predicted = np.array(predicted)
+    best = None
+    bestval = -8.
+    allvalues = []
+    for li,lam in enumerate(lams):
+        cur = 0.0
+        for p,ell in zip(predicted[:,li,:].T, labels.T):
+            corr,ps = spearnan_compare(p, ell)
+            cur += corr
+        cur /= labels.shape[1]
+        allvalues.append(cur)
+        if cur > bestval:
+            best = lam
+            bestli = li
+            bestval = cur
+    return best, bestval
+
+class lasso_regression_with_learning(object):
+    def train(self, features, labels):
+        best, val = select_lam(features, labels)
+        learner = lasso_learner(best)
+        return learner.train(features.T, labels.T)
+
