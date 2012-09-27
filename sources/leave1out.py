@@ -1,7 +1,7 @@
 from scipy import stats
 import numpy as np
 
-def _compare(predicted, gold):
+def spearnan_compare(predicted, gold):
     assert len(predicted) == len(gold)
     active = ~np.isnan(gold)
     if predicted[active].ptp() == 0 or gold[active].ptp() == 0:
@@ -28,7 +28,7 @@ def leave1out(learner, features, labels):
     corrs = []
     pvals = []
     for p,ell in zip(predicted.T, labels.T):
-        corr,ps = _compare(p, ell)
+        corr,ps = spearnan_compare(p, ell)
         corrs.append(corr)
         pvals.append(ps)
     return np.array([corrs,ps])
