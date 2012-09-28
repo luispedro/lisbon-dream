@@ -1,3 +1,5 @@
+from milk.supervised import lasso
+from milk.supervised.lasso import lasso_model
 from milk.supervised import lasso_learner
 from milk.supervised import lasso_model_walk
 
@@ -59,32 +61,58 @@ class lasso_path_regression(object):
 
 def select_lam(features, labels):
     from leave1out import spearnan_compare
-    predicted = []
-    for i in xrange(len(labels)):
-        idx = np.ones(len(labels), bool)
-        idx[i] = 0
-        models,lams = lasso_model_walk(features[idx].T, labels[idx].T, start=.1, step=.72, nr_steps=80, return_lams=True)
-        predicted.append([model.apply(features[i].T) for model in models])
-    predicted = np.array(predicted)
-    best = None
-    bestval = -8.
-    allvalues = []
-    for li,lam in enumerate(lams):
+    from milk.unsupervised import center
+    from scipy import optimize
+    def best_B(i, lam):
+        best = None
+        bestval = np.inf
+        for k in models[i]:
+            if np.abs(k-lam) < np.abs(k-bestval):
+                bestval = k
+                best = models[i][k]
+        if best is not None:
+            return best.copy(), bestval
+        return None, bestval
+    def evaluate(lam):
+        predicted = []
+        for i in xrange(len(labels)):
+            idx = np.ones(len(labels), bool)
+            idx[i] = 0
+            Y, Ymean = center(labels[idx].T, axis=1)
+            B,err = best_B(i,lam)
+            if err > 0:
+                B = lasso(features[idx].T, Y, B, lam=lam, tol=1e-3)
+            model = lasso_model(B, Ymean)
+            predicted.append(model.apply(features[i].T))
+            models[i][lam] = B
+        predicted = np.array(predicted)
         cur = 0.0
-        for p,ell in zip(predicted[:,li,:].T, labels.T):
+        for p,ell in zip(predicted.T, labels.T):
             corr,ps = spearnan_compare(p, ell)
             cur += corr
-        cur /= labels.shape[1]
-        allvalues.append(cur)
-        if cur > bestval:
-            best = lam
-            bestli = li
-            bestval = cur
-    return best, bestval
+        return - cur / labels.shape[1]
+
+    models = [{} for _ in labels]
+    start = 1.
+    last = 128.
+    seen = []
+    lams = []
+    for it in xrange(24):
+        cur = evaluate(start)
+        lams.append(start)
+        seen.append(cur)
+        if cur > last:
+            break
+        start /= 2.
+        last = cur
+    else:
+        return last
+
+    return optimize.brent(evaluate, brack=(lams[-1], lams[-2], lams[-3]), maxiter=64)
 
 class lasso_regression_with_learning(object):
     def train(self, features, labels):
-        best, val = select_lam(features, labels)
+        best = select_lam(features, labels)
         learner = lasso_learner(best)
         return learner.train(features.T, labels.T)
 
