@@ -75,15 +75,20 @@ def select_lam(features, labels):
         return None, bestval
     def evaluate(lam):
         predicted = []
-        for i in xrange(len(labels)):
+        for i in xrange(0,len(labels),3):
             idx = np.ones(len(labels), bool)
-            idx[i] = 0
+            idx[i:i+3] = 0
             Y, Ymean = center(labels[idx].T, axis=1)
             B,err = best_B(i,lam)
             if err > 0:
                 B = lasso(features[idx].T, Y, B, lam=lam, tol=1e-3)
             model = lasso_model(B, Ymean)
             predicted.append(model.apply(features[i].T))
+            try:
+                predicted.append(model.apply(features[i+1]))
+                predicted.append(model.apply(features[i+2]))
+            except IndexError:
+                pass
             models[i][lam] = B
         predicted = np.array(predicted)
         cur = 0.0
@@ -92,6 +97,7 @@ def select_lam(features, labels):
             cur += corr
         return - cur / labels.shape[1]
 
+    features = np.asanyarray(features)
     models = [{} for _ in labels]
     start = 1.
     last = 128.
@@ -103,12 +109,17 @@ def select_lam(features, labels):
         seen.append(cur)
         if cur > last:
             break
-        start /= 2.
+        start /= 4.
         last = cur
     else:
         return last
 
-    return optimize.brent(evaluate, brack=(lams[-1], lams[-2], lams[-3]), maxiter=64)
+    if seen[-2] < .05:
+        brack = (lams[-1], lams[-2], lams[-3])
+        if seen[-2] >= seen[-3]:
+            brack = (lams[-1], lams[-2])
+        return optimize.brent(evaluate, brack=brack, maxiter=64)
+    return lams[-2]
 
 class lasso_regression_with_learning(object):
     def train(self, features, labels):
