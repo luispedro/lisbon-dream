@@ -13,7 +13,7 @@ def spearnan_compare(predicted, gold):
 
 def leave1out(learner, features, labels):
     '''
-    avg_corr = leave1out(learner, features, labels)
+    corrs_ps = leave1out(learner, features, labels)
 
     Perform leave-1-out cross-validation on cell types
     '''
