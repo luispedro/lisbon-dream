@@ -11,18 +11,20 @@ def spearnan_compare(predicted, gold):
     assert not np.isnan(p)
     return c,p
 
-def leave1out(learner, features, labels):
+def leave1out(learner, features, labels, step=3):
     '''
     corrs_ps = leave1out(learner, features, labels)
 
     Perform leave-1-out cross-validation on cell types
     '''
+    features = np.asanyarray(features)
     predicted = []
-    for i in xrange(len(labels)):
+    for i in xrange(0,len(labels),3):
         idx = np.ones(len(labels), bool)
-        idx[i] = 0
+        idx[i:i+3] = 0
         model = learner.train(features[idx], labels[idx])
-        predicted.append(model.apply(features[i]))
+        for j in xrange(i, min(len(features), i + 3)):
+            predicted.append(model.apply(features[j]))
     predicted = np.array(predicted)
 
     corrs = []
