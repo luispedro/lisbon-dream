@@ -10,19 +10,6 @@ def maxabs(arr):
     select = np.abs(arr).argmax(0)
     return np.array([arr[y,x] for x,y in enumerate(select)])
 
-def normlabels(labels, axis=0):
-    labels = np.array(labels)
-    labels = labels.copy()
-    if axis == 0:
-        labels -= nanmean(labels, axis)
-    elif axis == 1:
-        labels -= nanmean(labels, axis)[:,None]
-    else:
-        raise ValueError('Axis ∉ { 0, 1}')
-
-    return labels
-
-
 def rna_ge_concatenated():
     gene_exp,celltypes_ge,_ = read_gene_expression()
     rna_seq,celltypes_rna,_ = read_rnaseq()
@@ -40,26 +27,6 @@ def rna_ge_concatenated():
             pass
     features = np.array(features)
     return features, np.array(labels)
-
-def rna_seq_active_only():
-    rna_seq,celltypes_rna,rna_types = read_rnaseq()
-    rna_seqcalls,rsc_cells, rsc_genes = read_rnaseq_calls()
-    training,celltypes,cs = read_training()
-    rna_seq = np.log1p(rna_seq)
-    ptp = rna_seqcalls.ptp(1)
-    valid = (ptp == 1)
-    features = []
-    labels = []
-    for ci,ct in enumerate(celltypes):
-        try:
-            rid = celltypes_rna.index(ct)
-            features.append(rna_seq[valid, rid])
-            labels.append(training[ci])
-        except ValueError:
-            pass
-    features = np.array(features)
-    return features, np.array(labels)
-
 
 def ge_rna_valid(aggr='mean'):
     from milk.unsupervised import zscore
@@ -131,7 +98,7 @@ def rna_ge_gosweigths(ag='add'):
             elif ag == 'maxabs':
                 gosweigths[:,ci] += f * (np.abs(f) > np.abs(gosweigths[:, ci]))
 
-    return prune_similar(gosweigths), np.array(labels)
+    return gosweigths, np.array(labels)
 
 def prune_similar(features, threshold=None, frac=None):
     from milk.unsupervised import pdist
