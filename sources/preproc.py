@@ -96,7 +96,7 @@ def rna_ge_gosweigths(ag='add'):
             if ag == 'add':
                 gosweigths[:,ci] += f
             elif ag == 'maxabs':
-                gosweigths[:,ci] += f * (np.abs(f) > np.abs(gosweigths[:, ci]))
+                gosweigths[:,ci] = maxabs(f,gosweigths[:, ci])
 
     return gosweigths, np.array(labels)
 
