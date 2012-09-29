@@ -1,8 +1,24 @@
 from milk.supervised.base import supervised_model
 import numpy as np
+
+def corrcoefs(X, y):
+    xy = np.dot(X, y)
+    y_ = y.mean()
+    ys_ = y.std()
+    x_ = X.mean(1)
+    xs_ = X.std(1)
+    n = float(len(y))
+    if ys_ == 0.:
+        raise ValueError("Cannot handle zero in y")
+    xs_ += 1e-5 # Handle zeros in x
+
+    return (xy - x_*y_*n)/n/xs_/ys_
+
+
+
 def select1(fi, ells, R):
-    C = np.array([np.cov(fi[:,i],ells)[0,1] for i in xrange(len(fi.T))])
-    R = np.array([np.cov(R.rand(len(ells)),ells)[0,1] for i in xrange(10000)])
+    C = corrcoefs(fi.T, ells)
+    R = corrcoefs(R.rand(10000, len(ells)), ells)
     R = np.abs(R)
     R.sort()
     cutoff = R[-len(R)//100]
