@@ -33,4 +33,4 @@ def leave1out(learner, features, labels, step=3):
         corr,ps = spearnan_compare(p, ell)
         corrs.append(corr)
         pvals.append(ps)
-    return np.array([corrs,ps])
+    return np.array([corrs,pvals])
