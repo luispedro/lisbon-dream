@@ -23,8 +23,9 @@ def print_results(results):
 
 
 @TaskGenerator
-def prune_features(features_labels, frac):
-    features, labels = features_labels
+def prune_features(data, frac):
+    features = data[0]
+    labels = data[1]
     return prune_similar(features, frac=frac), labels
 
 @TaskGenerator
@@ -65,19 +66,30 @@ class znorm_learner(object):
         return self.base.train(features, labels)
 
 
-rna_ge_gosweigths_add = Task(rna_ge_gosweigths, 'add')
-rna_ge_gosweigths_maxabs = Task(rna_ge_gosweigths, 'maxabs')
-
+rna_ge_gosweigths_add = rna_ge_gosweigths('add')
+rna_ge_gosweigths_mp_add = rna_ge_gosweigths('add', ['molecular_process'])
+rna_ge_gosweigths_bf_add = rna_ge_gosweigths('add', ['biological_function'])
+rna_ge_gosweigths_maxabs = rna_ge_gosweigths('maxabs')
+ge_rna_valid_mean = Task(ge_rna_valid)
 
 results = {}
 for lname,data in [
-                ('rna+ge+act+zs', Task(ge_rna_valid)),
+                ('rna+ge+act+zs', ge_rna_valid_mean),
+                ('prune(rna+ge+act+zs)', prune_features(ge_rna_valid_mean,.5)),
                 ('rna+ge+act(ma)+zs', Task(ge_rna_valid,'maxabs')),
                 ('gow', rna_ge_gosweigths_add),
                 ('gow-thresh', thresh(rna_ge_gosweigths_add)),
+                ('gowmp', rna_ge_gosweigths_mp_add),
+                ('gowmp-thresh', thresh(rna_ge_gosweigths_mp_add)),
+                ('gowbf', rna_ge_gosweigths_bf_add),
+                ('gowbf-thresh', thresh(rna_ge_gosweigths_bf_add)),
                 ('gow-ma', rna_ge_gosweigths_maxabs),
                 ('gow-ma-thresh', thresh(rna_ge_gosweigths_maxabs)),
                 ('prune(gow, .5)', prune_features(rna_ge_gosweigths_add, .5)),
+                ('prune(gowmp, .5)', prune_features(rna_ge_gosweigths_mp_add, .5)),
+                ('prune(thresh(gowmp), .5)', prune_features(thresh(rna_ge_gosweigths_mp_add), .5)),
+                ('prune(gowbf, .5)', prune_features(rna_ge_gosweigths_bf_add, .5)),
+                ('prune(thresh(gowbf), .5)', prune_features(thresh(rna_ge_gosweigths_bf_add), .5)),
                 ('prune(gow-ma, .5)', prune_features(rna_ge_gosweigths_maxabs, .5)),
                 ('prune(gow, .9)', prune_features(rna_ge_gosweigths_add, .9)),
                 ('prune(gow-ma, .9)', prune_features(rna_ge_gosweigths_maxabs, .9)),
@@ -88,18 +100,19 @@ for lname,data in [
     labels = data[1]
 
     for name,learner in [
-            #('relaxed', lasso_relaxed_after_learning()),
-            ('relaxed', lasso_relaxed(.000225010113525, .1)),
-            ('sel-relaxed', ctransforms(remove_constant_features(), select_learner(12), lasso_relaxed(.000225010113525, .1))),
-            ('zs-sel-relaxed', ctransforms(remove_constant_features(), zscore_normalise(), select_learner(12), lasso_relaxed(.000225010113525, .1))),
             ('random(1)', random_learner(1)),
             ('random(2)', random_learner(2)),
             ('random(3)', random_learner(3)),
+
+            ('ridge(1.)', ridge_regression(1.)),
             ('ridge(.128)', ridge_regression(.128)),
             ('ridge(.001)', ridge_regression(.001)),
             ('ridge(1e-6)', ridge_regression(1e-6)),
             ('select+ridge(.001)', ctransforms(remove_constant_features(), select_learner(12), ridge_regression(.001))),
-            ('ridge(1.)', ridge_regression(1.)),
+
+            ('relaxed', lasso_relaxed(.000225010113525, .1)),
+            ('sel-relaxed', ctransforms(remove_constant_features(), select_learner(12), lasso_relaxed(.000225010113525, .1))),
+            ('zs-sel-relaxed', ctransforms(remove_constant_features(), zscore_normalise(), select_learner(12), lasso_relaxed(.000225010113525, .1))),
             ('sel+lasso(1e-7)', ctransforms(remove_constant_features(), select_learner(12), lasso_regression(1e-7))),
             ('sel+lasso(1e-5)', ctransforms(remove_constant_features(), select_learner(16), lasso_regression(1e-5))),
             ('sel+lasso(0.000225010113525)', ctransforms(remove_constant_features(), select_learner(16), lasso_regression(0.000225010113525))),
@@ -110,6 +123,8 @@ for lname,data in [
             ('zs+sel+min0+lasso_guess', ctransforms(remove_constant_features(), zscore_normalise(), select_learner(12), min_to_zero(), lasso_regression_guess())),
             ('zs+min0+lasso_guess', ctransforms(remove_constant_features(), zscore_normalise(), min_to_zero(), lasso_regression_guess())),
             ('min0+lasso_guess', ctransforms(remove_constant_features(), min_to_zero(), lasso_regression_guess())),
+            ('min0+lasso_select+ridge', ctransforms(remove_constant_features(), min_to_zero(), lasso_selection(0.000225010113525), ridge_regression(.01))),
+
             ('rproject(12)', random_project(12)),
             ('rproject(24)', random_project(24)),
             ('rproject(128, ridge(.01))', random_project(128, ridge_regression(.01))),
@@ -117,14 +132,14 @@ for lname,data in [
             ('rproject(1024, lasso_guess)', random_project(1024, lasso_regression_guess())),
             ('rproject(8192, lasso_guess)', random_project(8192, lasso_regression_guess())),
             ]:
-        results[lname,name] = leave1out(learner, features, labels)
+        results[lname,'raw',name] = leave1out(learner, features, labels)
         learner0 = norm_learner(learner, 0)
         learner1 = norm_learner(learner, 1)
-        results['{0}-normed0'.format(lname),name] = leave1out(learner0, features, labels)
-        results['{0}-normed1'.format(lname),name] = leave1out(learner1, features, labels)
+        results[lname,'normed0',name] = leave1out(learner0, features, labels)
+        results[lname,'normed1',name] = leave1out(learner1, features, labels)
         zlearner0 = znorm_learner(learner, 0)
         zlearner1 = znorm_learner(learner, 1)
-        results['{0}-znormed0'.format(lname),name] = leave1out(zlearner0, features, labels)
-        results['{0}-znormed1'.format(lname),name] = leave1out(zlearner1, features, labels)
+        results[lname,'znormed0',name] = leave1out(zlearner0, features, labels)
+        results[lname,'znormed1',name] = leave1out(zlearner1, features, labels)
 
 print_results(results)
