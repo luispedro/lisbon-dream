@@ -33,10 +33,14 @@ def _learn(base, features, labels, alpha):
     for ci in xrange(nr_drugs):
         clabels = labels[:,ci]
         active = ~np.isnan(clabels)
-        clf = base(alpha)
-        clf.fit(features[active], labels[active,ci])
-        xs.append(clf.coef_.T.copy())
-        betas.append(clf.intercept_.copy())
+        if features[active].size == 0:
+            xs.append(np.zeros((active.sum(),0)))
+            betas.append(np.zeros(active.sum()))
+        else:
+            clf = base(alpha)
+            clf.fit(features[active], labels[active,ci])
+            xs.append(clf.coef_.T.copy())
+            betas.append(clf.intercept_.copy())
     return product_intercept_predictor(np.array(xs).T, np.array(betas))
 
 
@@ -175,6 +179,9 @@ class lasso_relaxed(object):
         model = learner.train(features.T, labels.T)
         betas = model.betas
         active = np.abs(betas) > 1.e-8
+        if not active.any():
+            print 'no features were active'
+            return model
         print active.sum()
         active = active.any(0)
         print active.sum()
