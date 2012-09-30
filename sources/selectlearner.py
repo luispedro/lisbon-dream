@@ -32,7 +32,11 @@ def select(features, labels, R):
         active = ~np.isnan(ells)
         ss.append(select1(features[active,:], ells[active], R))
     ss = np.array(ss)
-    return (ss.sum(0) > 20)
+    for cutoff in xrange(20,0):
+        selected = (ss.sum(0) > cutoff)
+        if np.sum(selected) > 10:
+            return selected
+    return ss.any(0)
 
 class select_model(supervised_model):
     def __init__(self, mask):
