@@ -193,3 +193,21 @@ class lasso_relaxed(object):
         model = learner.train(features.T, labels.T)
         return ctransforms_model([select_model(active),model])
 
+class lasso_selection(object):
+    def __init__(self, lam):
+        self.lam = lam
+    def train(self, features, labels):
+        from selectlearner import select_model
+        learner = lasso_learner(self.lam)
+        model = learner.train(features.T, labels.T)
+        betas = model.betas
+        active = np.abs(betas) > 1.e-8
+        if not active.any():
+            print 'no features were active'
+            return model
+        print active.sum()
+        active = active.any(0)
+        print active.sum()
+        print features.shape
+        return select_model(active)
+
