@@ -13,6 +13,17 @@ class lasso_regression(object):
     def train(self, features, labels):
         return self.learner.train(features.T, labels.T)
 
+class lasso_regression_guess(object):
+
+    def train(self, features, labels):
+        labelsf = np.nan_to_num(labels)
+        val = np.dot(features.T, labelsf)
+        lam = 1e-3*np.abs(val).max()/float(labels.size)
+        print('Guessed {0}.'.format(lam))
+        learner = lasso_learner(lam)
+        model = learner.train(features.T, labels.T)
+        return model
+
 def _learn(base, features, labels, alpha):
     nr_celltypes,nr_features = features.shape
     nr_celltypes_prime,nr_drugs = labels.shape
@@ -95,9 +106,11 @@ def select_lam(features, labels):
         for p,ell in zip(predicted.T, labels.T):
             corr,ps = spearnan_compare(p, ell)
             cur += corr
+        print('evaluate({0}) = {1:.2%}'.format(lam, cur / labels.shape[1]))
         return - cur / labels.shape[1]
 
     features = np.asanyarray(features)
+    labels = np.asanyarray(labels)
     models = [{} for _ in labels]
     start = 1.
     last = 128.
@@ -118,12 +131,58 @@ def select_lam(features, labels):
         brack = (lams[-1], lams[-2], lams[-3])
         if seen[-2] >= seen[-3]:
             brack = (lams[-1], lams[-2])
-        return optimize.brent(evaluate, brack=brack, maxiter=64)
-    return lams[-2]
+        val = optimize.brent(evaluate, brack=brack, maxiter=16)
+        print('Best found ({0}) has value {1:.2%}'.format(val, -evaluate(val)))
+        return val
+    else:
+        print('Skipping detailed optimisation ({0} has value {1})'.format(lams[-2], -seen[-2]))
+        return lams[-2]
 
 class lasso_regression_with_learning(object):
     def train(self, features, labels):
         best = select_lam(features, labels)
         learner = lasso_learner(best)
         return learner.train(features.T, labels.T)
+class lasso_relaxed_after_learning(object):
+    def train(self, features, labels):
+        from milk.supervised.classifier import ctransforms_model
+        from selectlearner import select_model
+        best = select_lam(features, labels)
+        learner = lasso_learner(best)
+        model = learner.train(features.T, labels.T)
+        betas = model.betas
+        active = np.abs(betas) > 1.e-8
+        print active.sum()
+        active = active.any(0)
+        print active.sum()
+        print features.shape
+        features = features[:,active]
+        print features.shape
+
+        best = select_lam(features, labels)
+        learner = lasso_learner(best)
+        model = learner.train(features.T, labels.T)
+        return ctransforms_model([select_model(active),model])
+
+class lasso_relaxed(object):
+    def __init__(self, lam1, phi):
+        self.lam1 = lam1
+        self.phi = phi
+    def train(self, features, labels):
+        from milk.supervised.classifier import ctransforms_model
+        from selectlearner import select_model
+        learner = lasso_learner(self.lam1)
+        model = learner.train(features.T, labels.T)
+        betas = model.betas
+        active = np.abs(betas) > 1.e-8
+        print active.sum()
+        active = active.any(0)
+        print active.sum()
+        print features.shape
+        features = features[:,active]
+        print features.shape
+
+        learner = lasso_learner(self.lam1 * self.phi)
+        model = learner.train(features.T, labels.T)
+        return ctransforms_model([select_model(active),model])
 
