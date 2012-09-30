@@ -8,8 +8,7 @@ def corrcoefs(X, y):
     x_ = X.mean(1)
     xs_ = X.std(1)
     n = float(len(y))
-    if ys_ == 0.:
-        raise ValueError("Cannot handle zero in y")
+    ys_ += 1e-5 # Handle zeros in ys
     xs_ += 1e-5 # Handle zeros in x
 
     return (xy - x_*y_*n)/n/xs_/ys_
