@@ -36,7 +36,7 @@ def select(features, labels, R):
         selected = (ss.sum(0) > cutoff)
         if np.sum(selected) > 10:
             return selected
-    return ss.any(0)
+    return np.ones(features.shape[1], bool)
 
 class select_model(supervised_model):
     def __init__(self, mask):
