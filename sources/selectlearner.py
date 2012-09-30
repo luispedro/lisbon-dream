@@ -57,3 +57,14 @@ class remove_constant_features(object):
         constant = features.ptp(0) != 0
         return filterfeatures(constant)
 
+
+class subtract_model(supervised_model):
+    def __init__(self, val):
+        self.val = val
+    def apply(self, features):
+        return features - self.val
+class min_to_zero(object):
+    def train(self, features, labels):
+        features = features.copy()
+        return subtract_model(features.min(0))
+
