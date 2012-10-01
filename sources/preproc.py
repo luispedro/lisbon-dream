@@ -93,11 +93,15 @@ def rna_ge_gosweigths(ag='add', filter_gos=None):
         cur = uniprot.retrieve_go_annotations(uniprot_name, only_cellular_component=False)
         gos.update(cur)
     gos = list(gos)
+    gos = select_gos(gos)
+    if len(gos) == 0:
+        raise ValueError('Gos were empty with filter = {0}'.format(filter_gos))
     gosweigths = np.zeros((len(features), len(gos)), np.float)
 
     for f,g in zip(features.T, gene2ensembl.keys()):
         uniprot_name = waldo.translate(gene2ensembl[g], 'ensembl:gene_id', 'uniprot:name')
         cur = uniprot.retrieve_go_annotations(uniprot_name, only_cellular_component=False)
+        cur = select_gos(cur)
         for c in cur:
             ci = gos.index(c)
             if ag == 'add':
