@@ -31,12 +31,13 @@ names = names[selected]
 
 
 def threshold(data):
+    t = 1.5
     dmso = data[:,drugs == 'DMSO']
     media = data[:,drugs == 'Media']
-    thresh_up_media = media.mean(1) + 1*media.std(1)
-    thresh_down_media = media.mean(1) - 1*media.std(1)
-    thresh_up_dmso = dmso.mean(1)+1*dmso.std(1)
-    thresh_down_dmso = dmso.mean(1)-3*dmso.std(1)
+    thresh_up_media = media.mean(1) + t*media.std(1)
+    thresh_down_media = media.mean(1) - t*media.std(1)
+    thresh_up_dmso = dmso.mean(1)+ t*dmso.std(1)
+    thresh_down_dmso = dmso.mean(1)- t*dmso.std(1)
 
     thresh_up = np.maximum(thresh_up_dmso, thresh_up_media)
     thresh_down = np.minimum(thresh_down_dmso, thresh_down_media)
@@ -46,7 +47,10 @@ thresh_up, thresh_down = threshold(data)
 
 drugdata = get_drugs()
 valid_data = []
-for dr in sorted(set(drugs)):
+
+sorted_drugs = sorted(set(drugs))
+
+for dr in sorted_drugs:
     ddata = data[:,drugs ==dr]
     dtimes = times[:,drugs == dr]
     valid = (ddata > thresh_up[:,None]) | (ddata < thresh_down[:,None])
@@ -97,7 +101,7 @@ allgos, perg = build_gos_pergos(data,names)
 thresh_up, thresh_down = threshold(perg)
 drugdata = get_drugs()
 valid_perg = []
-for dr in sorted(set(drugs)):
+for dr in sorted_drugs:
     ddata = perg[:,drugs==dr]
     dtimes = times[:,drugs == dr]
     valid = (ddata > thresh_up[:,None]) | (ddata < thresh_down[:,None])
