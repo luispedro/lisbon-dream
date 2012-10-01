@@ -20,7 +20,7 @@ def _read_rnaseq(fname):
     data = []
     celltypes = input.readline()
     celltypes = celltypes.strip().split('\t')
-    celltypes = celltypes[1:]
+    celltypes = celltypes[2:]
     genes = []
     for line in input:
         line = line.strip()
