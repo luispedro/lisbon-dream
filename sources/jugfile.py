@@ -10,6 +10,7 @@ from regularized import *
 from preproc import *
 import numpy as np
 from milk.supervised.classifier import ctransforms
+from print_by_data import print_detailed_results
 from milk.supervised.normalise import zscore_normalise
 
 leave1out = TaskGenerator(leave1out)
@@ -19,7 +20,9 @@ def print_results(results):
         for name in sorted(results.keys(), key=lambda k: np.mean(results[k][0])):
             val = results[name]
             val = np.mean(val[0])
-            print >>output, '{0:<64}: {1: .2%}'.format(name, val)
+            print >>output, '{0:<64}: {1: .2%}'.format('{0}-{1}-{2}'.format(*name), val)
+
+
 
 
 @TaskGenerator
@@ -67,20 +70,23 @@ class znorm_learner(object):
 
 
 rna_ge_gosweigths_add = rna_ge_gosweigths('add')
-rna_ge_gosweigths_mp_add = rna_ge_gosweigths('add', ['molecular_process'])
-rna_ge_gosweigths_bf_add = rna_ge_gosweigths('add', ['biological_function'])
+rna_ge_gosweigths_mp_add = rna_ge_gosweigths('add', ['molecular_function'])
+rna_ge_gosweigths_mpbf_add = rna_ge_gosweigths('add', ['molecular_function', 'biological_process'])
+rna_ge_gosweigths_bf_add = rna_ge_gosweigths('add', ['biological_process'])
 rna_ge_gosweigths_maxabs = rna_ge_gosweigths('maxabs')
 ge_rna_valid_mean = Task(ge_rna_valid)
 
 results = {}
 for lname,data in [
                 ('rna+ge+act+zs', ge_rna_valid_mean),
-                ('prune(rna+ge+act+zs)', prune_features(ge_rna_valid_mean,.5)),
+#                ('prune(rna+ge+act+zs)', prune_features(ge_rna_valid_mean,.5)),
                 ('rna+ge+act(ma)+zs', Task(ge_rna_valid,'maxabs')),
                 ('gow', rna_ge_gosweigths_add),
                 ('gow-thresh', thresh(rna_ge_gosweigths_add)),
                 ('gowmp', rna_ge_gosweigths_mp_add),
                 ('gowmp-thresh', thresh(rna_ge_gosweigths_mp_add)),
+                ('gowmpbf', rna_ge_gosweigths_mpbf_add),
+                ('gowmpbf-thresh', thresh(rna_ge_gosweigths_mpbf_add)),
                 ('gowbf', rna_ge_gosweigths_bf_add),
                 ('gowbf-thresh', thresh(rna_ge_gosweigths_bf_add)),
                 ('gow-ma', rna_ge_gosweigths_maxabs),
@@ -88,6 +94,8 @@ for lname,data in [
                 ('prune(gow, .5)', prune_features(rna_ge_gosweigths_add, .5)),
                 ('prune(gowmp, .5)', prune_features(rna_ge_gosweigths_mp_add, .5)),
                 ('prune(thresh(gowmp), .5)', prune_features(thresh(rna_ge_gosweigths_mp_add), .5)),
+                ('prune(gowmpbf, .5)', prune_features(rna_ge_gosweigths_mpbf_add, .5)),
+                ('prune(thresh(gowmpbf), .5)', prune_features(thresh(rna_ge_gosweigths_mpbf_add), .5)),
                 ('prune(gowbf, .5)', prune_features(rna_ge_gosweigths_bf_add, .5)),
                 ('prune(thresh(gowbf), .5)', prune_features(thresh(rna_ge_gosweigths_bf_add), .5)),
                 ('prune(gow-ma, .5)', prune_features(rna_ge_gosweigths_maxabs, .5)),
@@ -115,6 +123,8 @@ for lname,data in [
             ('zs-sel-relaxed', ctransforms(remove_constant_features(), zscore_normalise(), select_learner(12), lasso_relaxed(.000225010113525, .1))),
             ('sel+lasso(1e-7)', ctransforms(remove_constant_features(), select_learner(12), lasso_regression(1e-7))),
             ('sel+lasso(1e-5)', ctransforms(remove_constant_features(), select_learner(16), lasso_regression(1e-5))),
+            ('zs+lasso(1e-5)', ctransforms(remove_constant_features(), zscore_normalise(), lasso_regression_guess())),
+            ('min0+lasso(1e-5)', ctransforms(remove_constant_features(), min_to_zero(), lasso_regression_guess())),
             ('sel+lasso(0.000225010113525)', ctransforms(remove_constant_features(), select_learner(16), lasso_regression(0.000225010113525))),
             ('zs+sel+lasso(0.000225010113525)', ctransforms(remove_constant_features(), zscore_normalise(), select_learner(16), lasso_regression(0.000225010113525))),
             ('zs+sel+lasso_learn', ctransforms(remove_constant_features(), zscore_normalise(), select_learner(12), lasso_regression_with_learning())),
@@ -143,3 +153,4 @@ for lname,data in [
         results[lname,'znormed1',name] = leave1out(zlearner1, features, labels)
 
 print_results(results)
+print_detailed_results(results)
