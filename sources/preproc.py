@@ -92,11 +92,10 @@ def select_gos(gos, filter_gos, vcache=None):
     return [g for g in gos if v(g) in filter_gos]
 
 
-@TaskGenerator
-def rna_ge_gosweigths(ag='add', filter_gos=None):
+def generate_gosweights(features, gene2ensembl, ag, filter_gos):
     import waldo
     from waldo import uniprot
-    features,labels,gene2ensembl  = ge_rna_valid()
+
     gos = set()
     for g in gene2ensembl:
         uniprot_name = waldo.translate(gene2ensembl[g], 'ensembl:gene_id', 'uniprot:name')
@@ -123,6 +122,12 @@ def rna_ge_gosweigths(ag='add', filter_gos=None):
             else:
                 raise ValueError('What did you mean ({0})'.format(ag))
 
+    return gosweigths
+
+@TaskGenerator
+def rna_ge_gosweigths(ag='add', filter_gos=None):
+    features,labels,gene2ensembl  = ge_rna_valid()
+    gosweigths = generate_gosweights(features, gene2ensembl, ag, filter_gos)
     return gosweigths, np.array(labels)
 
 def prune_similar(features, threshold=None, frac=None):
