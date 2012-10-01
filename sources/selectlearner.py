@@ -2,6 +2,8 @@ from milk.supervised.base import supervised_model
 import numpy as np
 
 def corrcoefs(X, y):
+    X = np.asanyarray(X)
+    y = np.asanyarray(y)
     xy = np.dot(X, y)
     y_ = y.mean()
     ys_ = y.std()
