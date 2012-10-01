@@ -9,6 +9,7 @@ from regularized import lasso_relaxed_after_learning
 from regularized import lasso_relaxed_after_learning, lasso_relaxed
 from regularized import *
 from preproc import *
+from norm_learners import *
 import numpy as np
 from milk.supervised.classifier import ctransforms
 from print_by_data import print_detailed_results
@@ -36,10 +37,7 @@ def prune_features(data, frac):
 def thresh(data):
     features = data[0]
     labels = data[1]
-    mu = features.mean(0)
-    std = features.std(0)
-    features = (features > mu + 2*std) | (features < mu - 2*std)
-    return features, labels
+    return thresh_features(features), labels
 
 
 @TaskGenerator
@@ -48,55 +46,6 @@ def concat_features(data0,data1):
     features1 = data1[0]
     labels = data0[1]
     return np.hstack((features0,features1)), labels
-
-class add_model(supervised_model):
-    def __init__(self, base, b):
-        self.base = base
-        self.b = b
-
-    def apply(self, features):
-        return self.base.apply(features) + self.b
-
-class norm_learner(object):
-    def __init__(self, base, axis):
-        self.base = base
-        self.axis = axis
-
-    def train(self, features, labels):
-        from milk.unsupervised import center
-        labels, mean = center(labels, axis=self.axis)
-        return self.base.train(features, labels)
-
-class znorm_learner(object):
-    def __init__(self, base, axis):
-        self.base = base
-        self.axis = axis
-
-    def train(self, features, labels):
-        from milk.unsupervised import zscore
-        labels = zscore(labels, axis=self.axis)
-        return self.base.train(features, labels)
-
-class rank_learner(object):
-    def __init__(self, base, axis=0):
-        self.base = base
-        self.axis = axis
-
-    def __repr__(self):
-        return 'rank_learner({0})'.format(self.base)
-
-    __str__ = __repr__
-
-    def train(self, features, labels):
-        from milk.unsupervised import zscore
-        from scipy import stats
-        if self.axis == 0:
-            rlabels = np.array([stats.rankdata(ells) for ells in labels])
-        else:
-            rlabels = np.array([stats.rankdata(ells) for ells in labels.T])
-            rlabels = rlabels.T
-        rlabels[np.isnan(labels)] = np.nan
-        return self.base.train(features, rlabels)
 
 
 rna_ge_gosweigths_add = rna_ge_gosweigths('add')

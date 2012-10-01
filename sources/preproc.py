@@ -145,3 +145,11 @@ def prune_similar(features, threshold=None, frac=None):
         if x != y and select[x] and select[y]:
             select[x] = 0
     return features[:,select]
+
+def thresh_features(features):
+    mu = features.mean(0)
+    std = features.std(0)
+    features = (features > mu + 2*std) | (features < mu - 2*std)
+    return features
+
+
