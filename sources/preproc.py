@@ -115,7 +115,7 @@ def rna_ge_gosweigths(ag='add', filter_gos=None):
 
 def prune_similar(features, threshold=None, frac=None):
     from milk.unsupervised import pdist
-    dists = pdist(features.T)
+    dists = pdist(features.T.astype(np.float32))
     if frac is not None:
         Ds = dists.ravel().copy()
         Ds.sort()
