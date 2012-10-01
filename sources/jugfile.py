@@ -82,6 +82,11 @@ class rank_learner(object):
         self.base = base
         self.axis = axis
 
+    def __repr__(self):
+        return 'rank_learner({0})'.format(self.base)
+
+    __str__ = __repr__
+
     def train(self, features, labels):
         from milk.unsupervised import zscore
         from scipy import stats
@@ -96,8 +101,11 @@ class rank_learner(object):
 
 rna_ge_gosweigths_add = rna_ge_gosweigths('add')
 rna_ge_gosweigths_mp_add = rna_ge_gosweigths('add', ['molecular_function'])
+rna_ge_gosweigths_mp_ma = rna_ge_gosweigths('maxabs', ['molecular_function'])
 rna_ge_gosweigths_mpbf_add = rna_ge_gosweigths('add', ['molecular_function', 'biological_process'])
+rna_ge_gosweigths_mpbf_ma = rna_ge_gosweigths('maxabs', ['molecular_function', 'biological_process'])
 rna_ge_gosweigths_bf_add = rna_ge_gosweigths('add', ['biological_process'])
+rna_ge_gosweigths_bf_ma = rna_ge_gosweigths('maxabs', ['biological_process'])
 rna_ge_gosweigths_maxabs = rna_ge_gosweigths('maxabs')
 ge_rna_valid_mean = Task(ge_rna_valid)
 
@@ -111,24 +119,27 @@ for lname,data in [
                 ('gow', rna_ge_gosweigths_add),
                 ('gow-thresh', thresh(rna_ge_gosweigths_add)),
                 ('gowmp', rna_ge_gosweigths_mp_add),
-                ('gowmp-thresh', thresh(rna_ge_gosweigths_mp_add)),
+                ('gowmp-ma', rna_ge_gosweigths_mp_ma),
+                ('thresh(gowmp)', thresh(rna_ge_gosweigths_mp_add)),
+                ('thresh(gowmp-ma)', thresh(rna_ge_gosweigths_mp_ma)),
                 ('gowmpbf', rna_ge_gosweigths_mpbf_add),
-                ('gowmpbf-thresh', thresh(rna_ge_gosweigths_mpbf_add)),
+                ('gowmpbf-ma', rna_ge_gosweigths_mpbf_ma),
+                ('thresh(gowmpbf)', thresh(rna_ge_gosweigths_mpbf_add)),
+                ('thresh(gowmpbf-ma)', thresh(rna_ge_gosweigths_mpbf_ma)),
                 ('gowbf', rna_ge_gosweigths_bf_add),
-                ('gowbf-thresh', thresh(rna_ge_gosweigths_bf_add)),
+                ('thresh(gowbf)', thresh(rna_ge_gosweigths_bf_add)),
                 ('gow-ma', rna_ge_gosweigths_maxabs),
                 ('gow-ma-thresh', thresh(rna_ge_gosweigths_maxabs)),
                 ('prune(gow, .5)', prune_features(rna_ge_gosweigths_add, .5)),
                 ('prune(gowmp, .5)', prune_features(rna_ge_gosweigths_mp_add, .5)),
                 ('thresh(gowmp)', thresh(rna_ge_gosweigths_mp_add)),
+                ('CONCAT thresh(gowmp-ma)+prune(rna+ge+act)', concat_features(thresh(rna_ge_gosweigths_mp_ma), prune_features(ge_rna_valid_mean,.5))),
                 ('CONCAT thresh(gowmp)+prune(rna+ge+act)', concat_features(thresh(rna_ge_gosweigths_mp_add), prune_features(ge_rna_valid_mean,.5))),
-                ('thresh(gowmpbf)', thresh(rna_ge_gosweigths_mpbf_add)),
                 ('prune(gowmpbf, .5)', prune_features(rna_ge_gosweigths_mpbf_add, .5)),
                 ('prune(thresh(gowmpbf), .5)', prune_features(thresh(rna_ge_gosweigths_mpbf_add), .5)),
                 ('prune(thresh(gowmpbf), .1)', prune_features(thresh(rna_ge_gosweigths_mpbf_add), .1)),
                 ('prune(thresh(gowbf), .5)', prune_features(thresh(rna_ge_gosweigths_bf_add), .5)),
                 ('prune(thresh(gowbf), .1)', prune_features(thresh(rna_ge_gosweigths_bf_add), .1)),
-                ('thresh(gowbf)', thresh(rna_ge_gosweigths_bf_add)),
                 ('prune(gow-ma, .5)', prune_features(rna_ge_gosweigths_maxabs, .5)),
                 ('prune(gow, .9)', prune_features(rna_ge_gosweigths_add, .9)),
                 ('prune(gow-ma, .9)', prune_features(rna_ge_gosweigths_maxabs, .9)),
