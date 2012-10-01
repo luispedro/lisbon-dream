@@ -1,6 +1,19 @@
+from scipy import stats
+from load import *
+from norm_learners import norm_learner
+from milk.supervised.normalise import zscore_normalise
+from milk.supervised.classifier import ctransforms
+from selectlearner import *
+from regularized import *
 from milk.unsupervised import zscore
 from preproc import *
 from load import *
+def read_olines():
+    ifile = open_data('DREAM7_DrugSensitivity1_Predictions.csv', 1)
+    ifile.readline().split(',')[0]
+    olines = [ifile.readline().split(',')[0] for i in xrange(53)]
+    assert not ifile.readline()
+    return olines
 rna_seq,celltypes_rna,rna_types = read_rnaseq()
 gene_exp,celltypes_ge,ge_genes = read_gene_expression()
 rna_seqcalls,rsc_cells, rsc_genes = read_rnaseq_calls()
@@ -27,7 +40,13 @@ training,celltypes,cs = read_training()
 allct = set(celltypes_ge)|set(celltypes_rna)
 testing = allct - set(celltypes)
 features = []
-for ct in testing:
+selected = []
+ocelltypes = []
+allct = list(allct)
+for ct in allct:
+    selected.append(ct in testing)
+    if ct in testing:
+        ocelltypes.append(ct)
     cur = []
     try:
         gi = celltypes_ge.index(ct)
@@ -43,7 +62,45 @@ for ct in testing:
         raise KeyError("?")
     features.append(np.array(cur).mean(0))
 
+selected = np.array(selected)
 features = np.array(features)
-gosweights = generate_gosweights(features, gene2ensembl, 'maxabs', ['molecular_function'])
+gosweights = generate_gosweights(features, gene2ensembl, 'maxabs', ['molecular_function', 'biological_process'])
+gosweights = thresh_features(gosweights)
 
 
+
+learner = norm_learner(ctransforms(remove_constant_features(), zscore_normalise(), select_learner(12), lasso_relaxed(.000225010113525, .1)), 0)
+rna_ge_gosweigths_mpbf_ma,labels = rna_ge_gosweigths.f('maxabs', ['molecular_function', 'biological_process'])
+rna_ge_gosweigths_mpbf_ma = thresh_features(rna_ge_gosweigths_mpbf_ma)
+model = learner.train(rna_ge_gosweigths_mpbf_ma, labels)
+
+
+
+drugvalues, celltypes, drugs = read_training()
+olines = read_olines()
+results = []
+for o in olines:
+    if o in testing:
+        oi = allct.index(o)
+        r = model.apply(gosweights[oi])
+    else:
+        oi = celltypes.index(o)
+        r = drugvalues[oi]
+    results.append(r)
+results = np.array(results)
+
+def rankint(ri):
+    ri = np.array(ri)
+    ri = ri.argsort()
+    rri = np.zeros(len(ri))
+    for i,r in enumerate(ri):
+        rri[r] = i
+    rri += 1
+    return rri
+
+
+rresults = np.array([rankint(ri) for ri in results.T]).T
+rresults = rresults.astype(int)
+with open('sub1output.txt','w') as output:
+    for o,r in zip(olines, rresults):
+        print >>output, ",".join(map(format,[o]+list(r)))
