@@ -1,6 +1,8 @@
+from selectlearner import corrcoefs
 import numpy as np
 from drugconcentrations import get_drugs
 from load import read_sub2
+from pylab import plot
 data, drugs, times, concentrations, gene_names = read_sub2()
 
 
@@ -31,10 +33,10 @@ names = names[selected]
 def threshold(data):
     dmso = data[:,drugs == 'DMSO']
     media = data[:,drugs == 'Media']
-    thresh_up_media = media.mean(1) + 2*media.std(1)
-    thresh_down_media = media.mean(1) - 2*media.std(1)
-    thresh_up_dmso = dmso.mean(1)+2*dmso.std(1)
-    thresh_down_dmso = dmso.mean(1)-2*dmso.std(1)
+    thresh_up_media = media.mean(1) + 1*media.std(1)
+    thresh_down_media = media.mean(1) - 1*media.std(1)
+    thresh_up_dmso = dmso.mean(1)+1*dmso.std(1)
+    thresh_down_dmso = dmso.mean(1)-3*dmso.std(1)
 
     thresh_up = np.maximum(thresh_up_dmso, thresh_up_media)
     thresh_down = np.minimum(thresh_down_dmso, thresh_down_media)
@@ -43,13 +45,14 @@ def threshold(data):
 thresh_up, thresh_down = threshold(data)
 
 drugdata = get_drugs()
-validinany = np.zeros(len(data), bool)
+valid_data = []
 for dr in sorted(set(drugs)):
     ddata = data[:,drugs ==dr]
     dtimes = times[:,drugs == dr]
     valid = (ddata > thresh_up[:,None]) | (ddata < thresh_down[:,None])
     validinall = np.zeros(len(valid), bool)
-    validinall |= valid[:,dtimes == 6].mean(1) > .5
+    validinall |= valid[:].mean(1) > .5
+    valid_data.append(validinall)
     print '{0:32}{1: 8}'.format(dr, np.sum(validinall))
    
 def retrieve_gos(names):
@@ -82,12 +85,25 @@ allgos, perg = build_gos_pergos(data,names)
 
 thresh_up, thresh_down = threshold(perg)
 drugdata = get_drugs()
-validinany = np.zeros(len(perg), bool)
+valid_perg = []
 for dr in sorted(set(drugs)):
     ddata = perg[:,drugs==dr]
     dtimes = times[:,drugs == dr]
     valid = (ddata > thresh_up[:,None]) | (ddata < thresh_down[:,None])
     validinall = np.zeros(len(valid), bool)
     validinall |= valid.mean(1) > .5
+    valid_perg.append(validinall)
     print '{0:32}{1: 8}'.format(dr, np.sum(validinall))
+
+
+Cs = np.array([corrcoefs(valid_data, v) for v in valid_data])
+Ps = np.array([corrcoefs(valid_perg, p) for p in valid_perg])
+x,r,_,_ = np.linalg.lstsq(np.array([Ps.ravel()]).T, Cs.ravel())
+predicted =  Ps*x
+delta = Cs-predicted
+
+do_plot = False
+if do_plot:
+    plot(Ps.ravel(), Ps.ravel()*x,'b-')
+    plot(Ps.ravel(), Cs.ravel(),'r.')
 
