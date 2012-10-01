@@ -141,11 +141,18 @@ for di,d in enumerate(sorted_drugs):
         values.append((d,d2,predicted[di,d2i]-Cs[di,d2i]))
 values.sort(key=lambda x:x[2])
 
+def fix_dname(d):
+    if d == 'H-7, Dihydrochloride': return 'H-7'
+    if d == 'Doxorubicin hydrochloride': return 'Doxorubicin'
+    return d
+
 with open('final/DREAM7_DrugSensitivity2_Predictions_Lisbon.csv', 'w') as output:
     ac = -1
     print >>output, first_line
     for i,(d,d2,v) in enumerate(values):
+        d = fix_dname(d)
+        d2 = fix_dname(d2)
         print >> output, ('{0} & {1}, {2}'.format(d,d2, i +1))
         if ac == -1 and v > 0:
             ac = i
-    print >> output, ('Compound pair with additive activity (IC36), {0} & {1}'.format(values[ac][0],values[ac][1]))
+    print >> output, ('Compound pair with additive activity (IC36), {0} & {1}'.format(fix_dname(values[ac][0]),fix_dname(values[ac][1])))

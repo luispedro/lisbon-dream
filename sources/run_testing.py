@@ -106,7 +106,7 @@ def rankint(ri):
 
 rresults = np.array([rankint(ri) for ri in results.T]).T
 rresults = rresults.astype(int)
-with open('final/DREAM7_DrugSensitivity1_Predictions.csv', 'w') as output:
+with open('final/DREAM7_DrugSensitivity1_Predictions_Lisbon.csv', 'w') as output:
     print >>output, first_line
     for o,r in zip(olines, rresults):
         print >>output, ",".join(map(format,[o]+list(r)))
