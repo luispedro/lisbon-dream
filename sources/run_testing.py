@@ -101,6 +101,6 @@ def rankint(ri):
 
 rresults = np.array([rankint(ri) for ri in results.T]).T
 rresults = rresults.astype(int)
-with open('sub1output.txt','w') as output:
+with open('final/sub1output.txt','w') as output:
     for o,r in zip(olines, rresults):
         print >>output, ",".join(map(format,[o]+list(r)))

@@ -140,7 +140,7 @@ for di,d in enumerate(sorted_drugs):
         values.append((d,d2,predicted[di,d2i]-Cs[di,d2i]))
 values.sort(key=lambda x:x[2])
 
-with open('sub2output.txt', 'w') as output:
+with open('final/sub2output.txt', 'w') as output:
     ac = -1
     for i,(d,d2,v) in enumerate(values):
         print >> output, ('{0} & {1}, {2}'.format(d,d2, i +1))
