@@ -109,6 +109,7 @@ def select_lam(features, labels):
         for p,ell in zip(predicted.T, labels.T):
             corr,ps = spearnan_compare(p, ell)
             cur += corr
+        print('evaluate({0}) = {1:.2%}'.format(lam, cur/labels.shape[1]))
         return - cur / labels.shape[1]
 
     features = np.asanyarray(features)
@@ -133,8 +134,11 @@ def select_lam(features, labels):
         brack = (lams[-1], lams[-2], lams[-3])
         if seen[-2] >= seen[-3]:
             brack = (lams[-1], lams[-2])
-        val = optimize.brent(evaluate, brack=brack, maxiter=16)
-        return val
+        try:
+            val = optimize.brent(evaluate, brack=brack, maxiter=16)
+            return val
+        except:
+            return lams[-2]
     else:
         return lams[-2]
 
