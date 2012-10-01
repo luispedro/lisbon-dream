@@ -193,9 +193,6 @@ class lasso_selection(object):
         if not active.any():
             print 'no features were active'
             return model
-        print active.sum()
         active = active.any(0)
-        print active.sum()
-        print features.shape
         return select_model(active)
 
