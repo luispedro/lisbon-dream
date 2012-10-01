@@ -17,7 +17,7 @@ from milk.supervised.normalise import zscore_normalise
 leave1out = TaskGenerator(leave1out)
 @TaskGenerator
 def print_results(results):
-    with open('results.txt', 'w') as output:
+    with open('results/results.txt', 'w') as output:
         for name in sorted(results.keys(), key=lambda k: np.mean(results[k][0])):
             val = results[name]
             val = np.mean(val[0])
@@ -218,7 +218,7 @@ for lname,data in [
             ('rproject(128, ridge(.01))', randomp_project(128, ridge_regression(.01))),
             ('rp2roject(128, ridge(.01))', randomp2_project(128, ridge_regression(.01))),
             ('rproject(256, ridge(.01))', random_project(256, ridge_regression(.01))),
-            #('rproject(1024, lasso_learn)', random_project(1024, lasso_regression_with_learning())),
+            ('rproject(1024, lasso_learn)', random_project(1024, lasso_regression_with_learning())),
             ('rproject(128, lasso_guess)', random_project(128, lasso_regression_guess())),
             ('rproject(256, lasso_guess)', random_project(256, lasso_regression_guess())),
             ('rproject(1024, lasso_guess)', random_project(1024, lasso_regression_guess())),

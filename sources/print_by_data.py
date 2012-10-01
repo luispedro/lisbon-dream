@@ -6,7 +6,7 @@ def print_detailed_results(results):
     ds = set(ds)
     methods = set(m for _,n,m in results)
     norms = set(n for _,n,_ in results)
-    with open('by_data.txt', 'w') as output:
+    with open('results/by_data.txt', 'w') as output:
         for d in ds:
             print >>output, d
             res = []
@@ -23,7 +23,7 @@ def print_detailed_results(results):
             print >>output
             print >>output
             
-    with open('by_norm.txt', 'w') as output:
+    with open('results/by_norm.txt', 'w') as output:
         for n in norms:
             print >>output, n
             res = []
@@ -41,7 +41,7 @@ def print_detailed_results(results):
             print >>output
             
             
-    with open('by_method.txt', 'w') as output:
+    with open('results/by_method.txt', 'w') as output:
         for m in methods:
             if m.startswith('random('):
                 continue
@@ -58,7 +58,7 @@ def print_detailed_results(results):
             print >>output
             print >>output
             
-    with open('by_method_norm.txt', 'w') as output:
+    with open('results/by_method_norm.txt', 'w') as output:
         for m in methods:
             if m.startswith('random('):
                 continue
