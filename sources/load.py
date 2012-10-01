@@ -120,4 +120,4 @@ def read_sub2():
         data.append(map(float, tokens[2:]))
 
     data = np.array(data)
-    return data, drugs, times, concentrations, gene_names
+    return data, drugs, times, concentrations, genes
