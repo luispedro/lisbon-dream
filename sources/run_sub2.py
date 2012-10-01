@@ -4,6 +4,7 @@ from drugconcentrations import get_drugs
 from load import read_sub2
 from pylab import plot
 data, drugs, times, concentrations, gene_names = read_sub2()
+first_line = 'Drug Combination,Rank'
 
 
 names = np.array([n for _,n in gene_names])
@@ -140,8 +141,9 @@ for di,d in enumerate(sorted_drugs):
         values.append((d,d2,predicted[di,d2i]-Cs[di,d2i]))
 values.sort(key=lambda x:x[2])
 
-with open('final/sub2output.txt', 'w') as output:
+with open('final/DREAM7_DrugSensitivity2_Predictions_Lisbon.csv', 'w') as output:
     ac = -1
+    print >>output, first_line
     for i,(d,d2,v) in enumerate(values):
         print >> output, ('{0} & {1}, {2}'.format(d,d2, i +1))
         if ac == -1 and v > 0:

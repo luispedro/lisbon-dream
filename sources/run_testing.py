@@ -8,6 +8,7 @@ from regularized import *
 from milk.unsupervised import zscore
 from preproc import *
 from load import *
+first_line = 'DrugAnonID,Drug1,Drug2,Drug3,Drug4,Drug5,Drug6,Drug7,Drug8,Drug9,Drug10,Drug11,Drug12,Drug13,Drug14,Drug15,Drug16,Drug17,Drug18,Drug19,Drug20,Drug21,Drug22,Drug23,Drug24,Drug25,Drug26,Drug27,Drug28,Drug29,Drug30,Drug31'
 def read_olines():
     ifile = open_data('DREAM7_DrugSensitivity1_Predictions.csv', 1)
     ifile.readline().split(',')[0]
@@ -91,6 +92,10 @@ results = np.array(results)
 
 def rankint(ri):
     ri = np.array(ri)
+    # Values are switched around
+    #" lowest ranking (1,2,3...) corresponds to the highest GI50 values "
+    # therefore, we switch signs here:
+    ri = -ri
     ri = ri.argsort()
     rri = np.zeros(len(ri))
     for i,r in enumerate(ri):
@@ -101,6 +106,7 @@ def rankint(ri):
 
 rresults = np.array([rankint(ri) for ri in results.T]).T
 rresults = rresults.astype(int)
-with open('final/sub1output.txt','w') as output:
+with open('final/DREAM7_DrugSensitivity1_Predictions.csv', 'w') as output:
+    print >>output, first_line
     for o,r in zip(olines, rresults):
         print >>output, ",".join(map(format,[o]+list(r)))
