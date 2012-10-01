@@ -132,6 +132,18 @@ if do_plot:
     plot([p0,p1],[np.dot(x,[p0,1]),np.dot(x,[p1,1])], 'b-')
     plot(Ps.ravel(), Cs.ravel(),'r.')
 
+values = []
+for di,d in enumerate(sorted_drugs):
+    for d2i,d2 in enumerate(sorted_drugs[di+1:]):
+        if d in ["DMSO", "Media"] or d2 in ["DMSO","Media"]:
+            continue
+        values.append((d,d2,predicted[di,d2i]-Cs[di,d2i]))
+values.sort(key=lambda x:x[2])
 
-
-
+with open('sub2output.txt', 'w') as output:
+    ac = -1
+    for i,(d,d2,v) in enumerate(values):
+        print >> output, ('{0} & {1}, {2}'.format(d,d2, i +1))
+        if ac == -1 and v > 0:
+            ac = i
+    print >> output, ('Compound pair with additive activity (IC36), {0} & {1}'.format(values[ac][0],values[ac][1]))
