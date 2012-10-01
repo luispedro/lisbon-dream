@@ -68,6 +68,22 @@ class znorm_learner(object):
         labels = zscore(labels, axis=self.axis)
         return self.base.train(features, labels)
 
+class rank_learner(object):
+    def __init__(self, base, axis=0):
+        self.base = base
+        self.axis = axis
+
+    def train(self, features, labels):
+        from milk.unsupervised import zscore
+        from scipy import stats
+        if self.axis == 0:
+            rlabels = np.array([stats.rankdata(ells) for ells in labels])
+        else:
+            rlabels = np.array([stats.rankdata(ells) for ells in labels.T])
+            rlabels = rlabels.T
+        rlabels[np.isnan(labels)] = np.nan
+        return self.base.train(features, rlabels)
+
 
 rna_ge_gosweigths_add = rna_ge_gosweigths('add')
 rna_ge_gosweigths_mp_add = rna_ge_gosweigths('add', ['molecular_function'])
@@ -79,7 +95,7 @@ ge_rna_valid_mean = Task(ge_rna_valid)
 results = {}
 for lname,data in [
                 ('rna+ge+act+zs', ge_rna_valid_mean),
-#                ('prune(rna+ge+act+zs)', prune_features(ge_rna_valid_mean,.5)),
+                ('prune(rna+ge+act+zs)', prune_features(ge_rna_valid_mean,.5)),
                 ('rna+ge+act(ma)+zs', Task(ge_rna_valid,'maxabs')),
                 ('gow', rna_ge_gosweigths_add),
                 ('gow-thresh', thresh(rna_ge_gosweigths_add)),
@@ -93,11 +109,12 @@ for lname,data in [
                 ('gow-ma-thresh', thresh(rna_ge_gosweigths_maxabs)),
                 ('prune(gow, .5)', prune_features(rna_ge_gosweigths_add, .5)),
                 ('prune(gowmp, .5)', prune_features(rna_ge_gosweigths_mp_add, .5)),
-                ('prune(thresh(gowmp), .5)', prune_features(thresh(rna_ge_gosweigths_mp_add), .5)),
+                ('thresh(gowmp)', thresh(rna_ge_gosweigths_mp_add)),
+                ('thresh(gowmpbf)', thresh(rna_ge_gosweigths_mpbf_add)),
                 ('prune(gowmpbf, .5)', prune_features(rna_ge_gosweigths_mpbf_add, .5)),
                 ('prune(thresh(gowmpbf), .5)', prune_features(thresh(rna_ge_gosweigths_mpbf_add), .5)),
-                ('prune(gowbf, .5)', prune_features(rna_ge_gosweigths_bf_add, .5)),
                 ('prune(thresh(gowbf), .5)', prune_features(thresh(rna_ge_gosweigths_bf_add), .5)),
+                ('thresh(gowbf)', thresh(rna_ge_gosweigths_bf_add)),
                 ('prune(gow-ma, .5)', prune_features(rna_ge_gosweigths_maxabs, .5)),
                 ('prune(gow, .9)', prune_features(rna_ge_gosweigths_add, .9)),
                 ('prune(gow-ma, .9)', prune_features(rna_ge_gosweigths_maxabs, .9)),
@@ -151,6 +168,10 @@ for lname,data in [
         zlearner1 = znorm_learner(learner, 1)
         results[lname,'znormed0',name] = leave1out(zlearner0, features, labels)
         results[lname,'znormed1',name] = leave1out(zlearner1, features, labels)
+        rlearner0 = rank_learner(learner,0)
+        rlearner1 = rank_learner(learner,1)
+        results[lname,'ranked0',name] = leave1out(rlearner0, features, labels)
+        results[lname,'ranked1',name] = leave1out(rlearner1, features, labels)
 
 print_results(results)
 print_detailed_results(results)
