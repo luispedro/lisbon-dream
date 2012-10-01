@@ -77,23 +77,33 @@ def ge_rna_valid(aggr='mean'):
     features = np.array(features)
     return features, np.array(labels), gene2ensembl
 
+def select_gos(gos, filter_gos, vcache=None):
+    from waldo.go import vocabulary
+    if filter_gos is None:
+        return gos
+    def v(g):
+        if vcache is None:
+            return vocabulary(g)
+        if g in vcache:
+            return vcache[g]
+        r = vocabulary(g)
+        vcache[g] = r
+        return r
+    return [g for g in gos if v(g) in filter_gos]
+
+
 @TaskGenerator
 def rna_ge_gosweigths(ag='add', filter_gos=None):
     import waldo
     from waldo import uniprot
     features,labels,gene2ensembl  = ge_rna_valid()
-    def select_gos(gos):
-        from waldo.go import vocabulary
-        if filter_gos is None:
-            return gos
-        return [g for g in gos if vocabulary(g) in filter_gos]
     gos = set()
     for g in gene2ensembl:
         uniprot_name = waldo.translate(gene2ensembl[g], 'ensembl:gene_id', 'uniprot:name')
         cur = uniprot.retrieve_go_annotations(uniprot_name, only_cellular_component=False)
         gos.update(cur)
     gos = list(gos)
-    gos = select_gos(gos)
+    gos = select_gos(gos, filter_gos, {})
     if len(gos) == 0:
         raise ValueError('Gos were empty with filter = {0}'.format(filter_gos))
     gosweigths = np.zeros((len(features), len(gos)), np.float)
@@ -101,9 +111,11 @@ def rna_ge_gosweigths(ag='add', filter_gos=None):
     for f,g in zip(features.T, gene2ensembl.keys()):
         uniprot_name = waldo.translate(gene2ensembl[g], 'ensembl:gene_id', 'uniprot:name')
         cur = uniprot.retrieve_go_annotations(uniprot_name, only_cellular_component=False)
-        cur = select_gos(cur)
         for c in cur:
-            ci = gos.index(c)
+            try:
+                ci = gos.index(c)
+            except ValueError:
+                continue
             if ag == 'add':
                 gosweigths[:,ci] += f
             elif ag == 'maxabs':
