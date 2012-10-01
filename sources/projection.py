@@ -51,3 +51,137 @@ class random_project(object):
         features /= features.mean()
         inner = self.learner.train(features, labels)
         return ctransforms_model([product_predictor(V), inner])
+
+
+
+class random2_project(object):
+    '''
+    Perform a random projection to ``nr_dims`` dimensions and then fit a
+    least-squares model on this space
+
+    '''
+    def __init__(self, nr_dims=12, learner=None):
+        self.nr_dims = nr_dims
+        if learner is None:
+            self.learner = least_squares()
+        else:
+            self.learner = learner
+
+    def train(self, features, labels):
+        from milk.supervised.classifier import ctransforms_model
+        nr_celltypes,nr_features = features.shape
+        nr_celltypes_prime,nr_drugs = labels.shape
+        assert nr_celltypes_prime == nr_celltypes
+        V = np.random.rand(nr_features, self.nr_dims)
+        V **= 2
+        features = np.dot(features, V)
+        features /= 1e-3+features.mean()
+        inner = self.learner.train(features, labels)
+        return ctransforms_model([product_predictor(V), inner])
+
+class randomp_project(object):
+    '''
+    Perform a random projection to ``nr_dims`` dimensions and then fit a
+    least-squares model on this space
+
+    '''
+    def __init__(self, nr_dims=12, learner=None):
+        self.nr_dims = nr_dims
+        if learner is None:
+            self.learner = least_squares()
+        else:
+            self.learner = learner
+
+    def train(self, features, labels):
+        from milk.supervised.classifier import ctransforms_model
+        nr_celltypes,nr_features = features.shape
+        nr_celltypes_prime,nr_drugs = labels.shape
+        assert nr_celltypes_prime == nr_celltypes
+
+        V = np.random.rand(nr_features, self.nr_dims)
+        V **= 2
+        V[V < 0.1] = 0.0
+        features = np.dot(features, V)
+        features /= features.mean()
+        inner = self.learner.train(features, labels)
+        return ctransforms_model([product_predictor(V), inner])
+
+class randomp2_project(object):
+    '''
+    Perform a random projection to ``nr_dims`` dimensions and then fit a
+    least-squares model on this space
+
+    '''
+    def __init__(self, nr_dims=12, learner=None):
+        self.nr_dims = nr_dims
+        if learner is None:
+            self.learner = least_squares()
+        else:
+            self.learner = learner
+
+    def train(self, features, labels):
+        from milk.supervised.classifier import ctransforms_model
+        nr_celltypes,nr_features = features.shape
+        nr_celltypes_prime,nr_drugs = labels.shape
+        assert nr_celltypes_prime == nr_celltypes
+
+        V = np.random.rand(nr_features, self.nr_dims)
+        V **= 2
+        V[V < 0.8] = 0.0
+        features = np.dot(features, V)
+        features /= features.mean()
+        inner = self.learner.train(features, labels)
+        return ctransforms_model([product_predictor(V), inner])
+class randoms2_project(object):
+    '''
+    Perform a random projection to ``nr_dims`` dimensions and then fit a
+    least-squares model on this space
+
+    '''
+    def __init__(self, nr_dims=12, learner=None):
+        self.nr_dims = nr_dims
+        if learner is None:
+            self.learner = least_squares()
+        else:
+            self.learner = learner
+
+    def train(self, features, labels):
+        from milk.supervised.classifier import ctransforms_model
+        nr_celltypes,nr_features = features.shape
+        nr_celltypes_prime,nr_drugs = labels.shape
+        assert nr_celltypes_prime == nr_celltypes
+
+        Vs = np.random.rand(nr_features, self.nr_dims)
+        V = np.random.rand(nr_features, self.nr_dims)
+        V **= 2
+        V *= (Vs > .8)
+        features = np.dot(features, V)
+        features /= features.mean()
+        inner = self.learner.train(features, labels)
+        return ctransforms_model([product_predictor(V), inner])
+
+class randoms3_project(object):
+    '''
+    Perform a random projection to ``nr_dims`` dimensions and then fit a
+    least-squares model on this space
+
+    '''
+    def __init__(self, nr_dims=12, learner=None):
+        self.nr_dims = nr_dims
+        if learner is None:
+            self.learner = least_squares()
+        else:
+            self.learner = learner
+
+    def train(self, features, labels):
+        from milk.supervised.classifier import ctransforms_model
+        nr_celltypes,nr_features = features.shape
+        nr_celltypes_prime,nr_drugs = labels.shape
+        assert nr_celltypes_prime == nr_celltypes
+
+        V = np.ones((nr_features, self.nr_dims),dtype=float)
+        features = np.dot(features, V)
+        features /= features.mean()
+        inner = self.learner.train(features, labels)
+        return ctransforms_model([product_predictor(V), inner])
+
