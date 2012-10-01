@@ -58,13 +58,24 @@ for dr in sorted(set(drugs)):
 def retrieve_gos(names):
     import waldo
     import waldo.uniprot
+    from waldo.go import vocabulary
+    vocccache = {}
+    def cvocabulary(g):
+        try:
+            return vocccache[g]
+        except KeyError:
+            v = vocabulary(g)
+            vocccache[g] = v
+            return v
     gos = []
     for name in names:
         e = waldo.uniprot.retrieve.retrieve_entry(name+'_HUMAN')
         if e is None:
             gos.append([])
         else:
-            gos.append([ann.go_id for ann in e.go_annotations])
+            anns = [ann.go_id for ann in e.go_annotations]
+            anns = [a for a in anns if cvocabulary(a) in ['molecular_function']]
+            gos.append(anns)
     return gos
 
 
@@ -98,12 +109,25 @@ for dr in sorted(set(drugs)):
 
 Cs = np.array([corrcoefs(valid_data, v) for v in valid_data])
 Ps = np.array([corrcoefs(valid_perg, p) for p in valid_perg])
-x,r,_,_ = np.linalg.lstsq(np.array([Ps.ravel()]).T, Cs.ravel())
-predicted =  Ps*x
+
+
+
+X = Ps.ravel()
+y = Cs.ravel()
+y = y[X.ravel() <= .99]
+X = X[X <= .99]
+X = np.array([X,np.ones(len(X))])
+x,r,_,_ = np.linalg.lstsq(X.T,y)
+
+predicted =  Ps*x[0]+x[1]
 delta = Cs-predicted
 
 do_plot = False
 if do_plot:
-    plot(Ps.ravel(), Ps.ravel()*x,'b-')
+    p0,p1 = Ps.min(),Ps.max()
+    plot([p0,p1],[np.dot(x,[p0,1]),np.dot(x,[p1,1])], 'b-')
     plot(Ps.ravel(), Cs.ravel(),'r.')
+
+
+
 
