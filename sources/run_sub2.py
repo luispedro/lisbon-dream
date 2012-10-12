@@ -112,33 +112,33 @@ for dr in sorted_drugs:
     print '{0:32}{1: 8}'.format(dr, np.sum(validinall))
 
 
-Cs = np.array([corrcoefs(valid_data, v) for v in valid_data])
-Ps = np.array([corrcoefs(valid_perg, p) for p in valid_perg])
+GeneCs = np.array([corrcoefs(valid_data, v) for v in valid_data])
+GoCs = np.array([corrcoefs(valid_perg, p) for p in valid_perg])
 
 
 
-X = Ps.ravel()
-y = Cs.ravel()
+X = GoCs.ravel()
+y = GeneCs.ravel()
 y = y[X.ravel() <= .99]
 X = X[X <= .99]
 X = np.array([X,np.ones(len(X))])
 x,r,_,_ = np.linalg.lstsq(X.T,y)
 
-predicted =  Ps*x[0]+x[1]
-delta = Cs-predicted
+predicted =  GoCs*x[0]+x[1]
+Gene_minus_predicted = GeneCs-predicted
 
 do_plot = False
 if do_plot:
-    p0,p1 = Ps.min(),Ps.max()
+    p0,p1 = GoCs.min(),GoCs.max()
     plot([p0,p1],[np.dot(x,[p0,1]),np.dot(x,[p1,1])], 'b-')
-    plot(Ps.ravel(), Cs.ravel(),'r.')
+    plot(GoCs.ravel(), GeneCs.ravel(),'r.')
 
 values = []
 for di,d in enumerate(sorted_drugs):
     for d2i,d2 in enumerate(sorted_drugs[di+1:]):
         if d in ["DMSO", "Media"] or d2 in ["DMSO","Media"]:
             continue
-        values.append((d,d2,predicted[di,d2i]-Cs[di,d2i]))
+        values.append((d, d2, -Gene_minus_predicted[di,d2i]))
 values.sort(key=lambda x:x[2])
 
 def fix_dname(d):
