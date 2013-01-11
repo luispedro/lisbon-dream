@@ -2,7 +2,6 @@ from selectlearner import corrcoefs
 import numpy as np
 from drugconcentrations import get_drugs
 from load import read_sub2
-from pylab import plot
 data, drugs, times, concentrations, gene_names = read_sub2()
 first_line = 'Drug Combination,Rank'
 
@@ -129,6 +128,7 @@ Gene_minus_predicted = GeneCs-predicted
 
 do_plot = False
 if do_plot:
+    from pylab import plot
     p0,p1 = GoCs.min(),GoCs.max()
     plot([p0,p1],[np.dot(x,[p0,1]),np.dot(x,[p1,1])], 'b-')
     plot(GoCs.ravel(), GeneCs.ravel(),'r.')
