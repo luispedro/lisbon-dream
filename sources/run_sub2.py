@@ -2,6 +2,10 @@ from selectlearner import corrcoefs
 import numpy as np
 from drugconcentrations import get_drugs
 from load import read_sub2
+from matplotlib import pyplot as plt
+import jug.utils
+from jug import Task, TaskGenerator, CachedFunction, bvalue
+
 def threshold(data):
     t = 1.5
     dmso = data[:,drugs == 'DMSO']
@@ -47,6 +51,7 @@ def retrieve_gos(names, vocabs):
     return gos
 
 
+@TaskGenerator
 def build_gos_pergos(data, names, vocabs):
     gos = retrieve_gos(names, vocabs)
     allgos = set()
@@ -87,6 +92,7 @@ for i,n in enumerate(names):
 
 data = data[selected]
 names = names[selected]
+idata = jug.utils.identity(data)
 
 thresh_up, thresh_down = threshold(data)
 
@@ -103,19 +109,19 @@ for dr in sorted_drugs:
     validinall = np.zeros(len(valid), bool)
     validinall |= valid[:].mean(1) > .5
     valid_data.append(validinall)
-    #print '{0:32}{1: 8}'.format(dr, np.sum(validinall))
+    print '{0:32}{1: 8}'.format(dr, np.sum(validinall))
 
 
 for name,vocabs in [
-                ('cc', ['cellular_component']),
                 ('mf', ['molecular_function']),
+                ('cc', ['cellular_component']),
                 ('bp', ['biological_process']),
                 ('mf_bp', ['molecular_function', 'biological_process']),
                 ('mf_cc', ['molecular_function', 'cellular_component']),
                 ('bp_cc', ['biological_process', 'cellular_component']),
                 ('all',None),
                 ]:
-    allgos, perg = build_gos_pergos(data,names, vocabs)
+    allgos, perg = bvalue(build_gos_pergos(idata,names, vocabs))
 
     thresh_up, thresh_down = threshold(perg)
     valid_perg = []
@@ -126,13 +132,11 @@ for name,vocabs in [
         validinall = np.zeros(len(valid), bool)
         validinall |= valid.mean(1) > .5
         valid_perg.append(validinall)
-        #print '{0:32}{1: 8}'.format(dr, np.sum(validinall))
+        print '{0:32}{1: 8}'.format(dr, np.sum(validinall))
 
 
     GeneCs = np.array([corrcoefs(valid_data, v) for v in valid_data])
     GoCs = np.array([corrcoefs(valid_perg, p) for p in valid_perg])
-
-    print GoCs[0]
 
     X = GoCs.ravel()
     y = GeneCs.ravel()
@@ -162,3 +166,21 @@ for name,vocabs in [
             if ac == -1 and v > 0:
                 ac = i
         print >> output, ('Compound pair with additive activity (IC36), {0} & {1}'.format(fix_dname(values[ac][0]),fix_dname(values[ac][1])))
+
+
+    plt.clf()
+    plt.plot(GeneCs.ravel(), GoCs.ravel(), 'ko')
+    plt.xlabel('Gene Correlation')
+    plt.ylabel('GO Term Correlation')
+
+    X = GeneCs.ravel()
+    y = GoCs.ravel()
+    y = y[X.ravel() <= .99]
+    X = X[X <= .99]
+    X = np.array([X,np.ones(len(X))])
+    x,r,_,_ = np.linalg.lstsq(X.T,y)
+
+    xline = np.array([GeneCs.min()-.1, GeneCs.max()+.1])
+    yline = xline*x[0] + x[1]
+    plt.plot(xline, yline, 'r-')
+    plt.savefig('outputs/plot2_{}.png'.format(name))
