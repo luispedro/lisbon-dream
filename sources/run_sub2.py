@@ -6,6 +6,8 @@ from matplotlib import pyplot as plt
 import jug.utils
 from jug import Task, TaskGenerator, CachedFunction, bvalue
 
+reverse_regression = False
+
 def threshold(data):
     t = 1.5
     dmso = data[:,drugs == 'DMSO']
@@ -138,15 +140,23 @@ for name,vocabs in [
     GeneCs = np.array([corrcoefs(valid_data, v) for v in valid_data])
     GoCs = np.array([corrcoefs(valid_perg, p) for p in valid_perg])
 
-    X = GoCs.ravel()
-    y = GeneCs.ravel()
+    if reverse_regression:
+        y = GoCs.ravel()
+        X = GeneCs.ravel()
+    else:
+        X = GoCs.ravel()
+        y = GeneCs.ravel()
     y = y[X.ravel() <= .99]
     X = X[X <= .99]
     X = np.array([X,np.ones(len(X))])
     x,r,_,_ = np.linalg.lstsq(X.T,y)
 
-    predicted =  GoCs*x[0]+x[1]
-    Gene_minus_predicted = GeneCs-predicted
+    if reverse_regression:
+        predicted =  GeneCs*x[0]+x[1]
+        Gene_minus_predicted = -GoCs+predicted
+    else:
+        predicted =  GoCs*x[0]+x[1]
+        Gene_minus_predicted = GeneCs-predicted
 
     values = []
     for di,d in enumerate(sorted_drugs):
@@ -156,7 +166,8 @@ for name,vocabs in [
             values.append((d, d2, -Gene_minus_predicted[di,di+1+d2i]))
     values.sort(key=lambda x:x[2])
 
-    with open('outputs/sub2_{}.csv'.format(name), 'w') as output:
+    end = ('r' if reverse_regression else '')
+    with open('outputs/sub2{}_{}.csv'.format(end,name), 'w') as output:
         ac = -1
         print >>output, first_line
         for i,(d,d2,v) in enumerate(values):
@@ -169,18 +180,23 @@ for name,vocabs in [
 
 
     plt.clf()
-    plt.plot(GeneCs.ravel(), GoCs.ravel(), 'ko')
-    plt.xlabel('Gene Correlation')
-    plt.ylabel('GO Term Correlation')
-
-    X = GeneCs.ravel()
-    y = GoCs.ravel()
-    y = y[X.ravel() <= .99]
-    X = X[X <= .99]
-    X = np.array([X,np.ones(len(X))])
-    x,r,_,_ = np.linalg.lstsq(X.T,y)
-
-    xline = np.array([GeneCs.min()-.1, GeneCs.max()+.1])
+    if reverse_regression:
+        plt.plot(GoCs.ravel(), GeneCs.ravel(), 'ko')
+        plt.ylabel('Gene Correlation')
+        plt.xlabel('GO Term Correlation')
+        xline = np.array([GoCs.min()-.1, GoCs.max()+.1])
+    else:
+        plt.plot(GeneCs.ravel(), GoCs.ravel(), 'ko')
+        plt.xlabel('Gene Correlation')
+        plt.ylabel('GO Term Correlation')
+        X = GeneCs.ravel()
+        y = GoCs.ravel()
+        y = y[X.ravel() <= .99]
+        X = X[X <= .99]
+        X = np.array([X,np.ones(len(X))])
+        x,r,_,_ = np.linalg.lstsq(X.T,y)
+        xline = np.array([GeneCs.min()-.1, GeneCs.max()+.1])
     yline = xline*x[0] + x[1]
     plt.plot(xline, yline, 'r-')
-    plt.savefig('outputs/plot2_{}.png'.format(name))
+    plt.savefig('outputs/plot{}_{}.tiff'.format(end, name), dpi=600)
+
