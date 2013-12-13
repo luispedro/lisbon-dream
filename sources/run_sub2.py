@@ -73,6 +73,7 @@ first_line = 'Drug Combination,Rank'
 
 
 names = np.array([n for _,n in gene_names])
+gene_names = np.array(gene_names)
 positions = names.argsort()
 data = data[positions]
 names = names[positions]
@@ -103,16 +104,39 @@ valid_data = []
 
 sorted_drugs = sorted(set(drugs))
 
-
+genes_used = set()
 for dr in sorted_drugs:
     ddata = data[:,drugs ==dr]
     dtimes = times[:,drugs == dr]
     valid = (ddata > thresh_up[:,None]) | (ddata < thresh_down[:,None])
-    validinall = np.zeros(len(valid), bool)
-    validinall |= valid[:].mean(1) > .5
-    valid_data.append(validinall)
-    print '{0:32}{1: 8}'.format(dr, np.sum(validinall))
+    validinany = np.zeros(len(valid), bool)
+    validinany |= valid[:].mean(1) > .5
+    valid_data.append(validinany)
+    print '{0:32}{1: 8}'.format(dr, np.sum(validinany))
 
+    for g in gene_names[selected][validinany,1]:
+        genes_used.add((dr, g))
+
+
+with open('genes_used.txt', 'w') as outg:
+    line = ['']
+    for dr in sorted_drugs:
+        if dr != 'DMSO':
+            line.append(dr)
+    print >>outg, '\t'.join(line)
+    for g in gene_names[selected][:,1]:
+        line = [g]
+        print_line = False
+        for dr in sorted_drugs:
+            if dr == 'DMSO':
+                continue
+            if (dr, g) in genes_used:
+                line.append('*')
+                print_line = True
+            else:
+                line.append('')
+        if print_line:
+            print >>outg, '\t'.join(line)
 
 for name,vocabs in [
                 ('mf', ['molecular_function']),
@@ -131,10 +155,10 @@ for name,vocabs in [
         ddata = perg[:,drugs==dr]
         dtimes = times[:,drugs == dr]
         valid = (ddata > thresh_up[:,None]) | (ddata < thresh_down[:,None])
-        validinall = np.zeros(len(valid), bool)
-        validinall |= valid.mean(1) > .5
-        valid_perg.append(validinall)
-        print '{0:32}{1: 8}'.format(dr, np.sum(validinall))
+        validinany = np.zeros(len(valid), bool)
+        validinany |= valid.mean(1) > .5
+        valid_perg.append(validinany)
+        print '{0:32}{1: 8}'.format(dr, np.sum(validinany))
 
 
     GeneCs = np.array([corrcoefs(valid_data, v) for v in valid_data])
@@ -198,5 +222,5 @@ for name,vocabs in [
         xline = np.array([GeneCs.min()-.1, GeneCs.max()+.1])
     yline = xline*x[0] + x[1]
     plt.plot(xline, yline, 'r-')
-    plt.savefig('outputs/plot{}_{}.tiff'.format(end, name), dpi=600)
+    plt.savefig('outputs/plot{}_{}.png'.format(end, name), dpi=600)
 
