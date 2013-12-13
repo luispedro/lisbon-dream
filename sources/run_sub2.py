@@ -138,6 +138,7 @@ with open('genes_used.txt', 'w') as outg:
         if print_line:
             print >>outg, '\t'.join(line)
 
+mf_valid_perg = None
 for name,vocabs in [
                 ('mf', ['molecular_function']),
                 ('cc', ['cellular_component']),
@@ -151,6 +152,7 @@ for name,vocabs in [
 
     thresh_up, thresh_down = threshold(perg)
     valid_perg = []
+    gos_used = set()
     for dr in sorted_drugs:
         ddata = perg[:,drugs==dr]
         dtimes = times[:,drugs == dr]
@@ -159,6 +161,31 @@ for name,vocabs in [
         validinany |= valid.mean(1) > .5
         valid_perg.append(validinany)
         print '{0:32}{1: 8}'.format(dr, np.sum(validinany))
+        for i,g in enumerate(allgos):
+            if validinany[i]:
+                gos_used.add((dr, g))
+
+    if mf_valid_perg is None and name == 'mf':
+        with open('goterms_used.txt', 'w') as outg:
+            line = ['']
+            for dr in sorted_drugs:
+                if dr != 'DMSO':
+                    line.append(dr)
+            print >>outg, '\t'.join(line)
+            for g in allgos:
+                line = [g]
+                print_line = False
+                for dr in sorted_drugs:
+                    if dr == 'DMSO':
+                        continue
+                    if (dr, g) in gos_used:
+                        line.append('*')
+                        print_line = True
+                    else:
+                        line.append('')
+                if print_line:
+                    print >>outg, '\t'.join(line)
+        mf_valid_perg = np.array(valid_perg)
 
 
     GeneCs = np.array([corrcoefs(valid_data, v) for v in valid_data])
